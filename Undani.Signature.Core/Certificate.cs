@@ -1,7 +1,12 @@
 ﻿using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
+using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using System.Text;
+using Undani.Signature.Core.Resource;
 
 namespace Undani.Signature.Core
 {
@@ -21,6 +26,7 @@ namespace Undani.Signature.Core
         private string _rfc;
         private string _name;
         private DateTime _expirationDate;
+        private string _serialNumber;
 
         public Certificate(IConfiguration configuration, User user, Guid environmentId, byte[] publicKey)
         {
@@ -103,18 +109,9 @@ namespace Undani.Signature.Core
             }
         }
 
-        private void Validate()
+        public string SerialNumber
         {
-
-            
-
-            Dictionary<string, string> content = GetCertificateContent(_x509PublicKey);
-
-            result.Error = ValidateKey(ref result, uid, content["SERIALNUMBER"], content["O"]);
-
-            result.Error = ValidateExpiration(ref result, content["EXPIRATIONDATE"]);
-
-            result.Error = ValidateOCSP(ref result, publicKeyBytes);
+            get { return _serialNumber; }
         }
 
         private void SetCertificateProperties()
@@ -133,7 +130,7 @@ namespace Undani.Signature.Core
             if (result.Count == 0)
                 throw new Exception("Certificate is wrong");
 
-            _curp = result["SERIALNUMBER"];            
+            _curp = result["SERIALNUMBER"];
 
             if (CURP.Length != 18)
                 throw new Exception("The curp number is wrong");
@@ -141,15 +138,127 @@ namespace Undani.Signature.Core
             _rfc = result["2.5.4.45"];
             if (RFC.Length != 13)
                 throw new Exception("The rfc number is wrong");
-            
+
             _name = result["O"];
             if (Name.Length == 0)
                 throw new Exception("The name is wrong");
 
             _expirationDate = DateTime.Parse(X509PublicKey.GetExpirationDateString());
-            if (ExpirationDate < DateTime.Now)
+
+            if (ExpirationDate < GetDateTimeNow())
                 throw new Exception("The certificate has expired");
 
+            _serialNumber = GetSerialNumber();
+
+        }
+
+        private DateTime GetDateTimeNow()
+        {
+            using (SqlConnection cn = new SqlConnection(Configuration["CnDbTracking"]))
+            {
+                cn.Open();
+
+                using (SqlCommand cmd = new SqlCommand("usp_Get_DateTimeNow", cn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.Add(new SqlParameter("@DateTime", SqlDbType.DateTime) { Direction = ParameterDirection.Output });
+
+                    cmd.ExecuteNonQuery();
+
+                    return (DateTime)cmd.Parameters["@DateTime"].Value;
+                }
+
+            }
+        }
+
+        private string GetSerialNumber()
+        {
+            string result = "";
+
+            string publicKeySerialNumber = X509PublicKey.GetSerialNumberString();
+
+            char[] aPublicKeySerialNumber = publicKeySerialNumber.ToCharArray();
+
+            bool flag = false;
+
+            foreach (char val in aPublicKeySerialNumber)
+            {
+                if (flag)
+                {
+                    result += val;
+                    flag = false;
+                }
+                else
+                    flag = true;
+            }
+
+            return result;
+        }
+
+        public bool ValidateRevocation()
+        {
+            return true;
+        }
+
+        public byte[] GetHash(string text)
+        {
+            SHA256Managed sha256 = new SHA256Managed();
+
+            UnicodeEncoding encoding = new UnicodeEncoding();
+
+            byte[] data = encoding.GetBytes(text);
+
+            byte[] hash = sha256.ComputeHash(data);
+
+            return hash;
+        }
+
+        public bool ValidateSeal(string text, string sealWithPrivateKey)
+        {
+            X509Certificate2 cert = new X509Certificate2(PublicKey);
+
+            RSA csp = (RSA)cert.PublicKey.Key;
+
+            byte[] hash = GetHash(text);
+
+            bool esValida = csp.VerifyHash(hash, Convert.FromBase64String(sealWithPrivateKey), HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+
+            return esValida;
+        }
+
+        public string PublicKeySerialNumber(string publicKeySerialNumber)
+        {
+            string result = "";
+
+            char[] aPublicKeySerialNumber = publicKeySerialNumber.ToCharArray();
+
+            bool flag = false;
+
+            foreach (char val in aPublicKeySerialNumber)
+            {
+                if (flag)
+                {
+                    result += val;
+                    flag = false;
+                }
+                else
+                {
+                    flag = true;
+                }
+            }
+
+            return result;
+        }
+
+        public string GetCrc32(string text)
+        {
+            Crc32 crc32 = new Crc32();
+
+            String hash = String.Empty;
+
+            foreach (byte b in crc32.ComputeHash(Encoding.ASCII.GetBytes(text))) hash += b.ToString("x2").ToLower();
+
+            return hash;
         }
     }
 }

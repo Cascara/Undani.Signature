@@ -5,9 +5,11 @@ VisualStudioVersion = 15.0.28010.2046
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Undani.Signature.API", "Undani.Signature.API\Undani.Signature.API.csproj", "{E74FA434-64F4-43DD-AAB4-1DBB905F2AEA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Undani.Signature", "Undani.Signature\Undani.Signature.csproj", "{37EB4F02-0CC3-49FE-839E-BAE6B58E4E38}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Undani.Signature", "Undani.Signature\Undani.Signature.csproj", "{37EB4F02-0CC3-49FE-839E-BAE6B58E4E38}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Undani.Signature.Core", "Undani.Signature.Core\Undani.Signature.Core.csproj", "{3E2C6BCF-08D1-4717-986E-744574FDF90F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Undani.Signature.Core", "Undani.Signature.Core\Undani.Signature.Core.csproj", "{3E2C6BCF-08D1-4717-986E-744574FDF90F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Undani.Signature.Core.Revocation", "Undani.Signature.Core.Revocation\Undani.Signature.Core.Revocation.csproj", "{86CD7239-61FE-4AF5-BAB7-EAF127272AA8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{3E2C6BCF-08D1-4717-986E-744574FDF90F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3E2C6BCF-08D1-4717-986E-744574FDF90F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3E2C6BCF-08D1-4717-986E-744574FDF90F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{86CD7239-61FE-4AF5-BAB7-EAF127272AA8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{86CD7239-61FE-4AF5-BAB7-EAF127272AA8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{86CD7239-61FE-4AF5-BAB7-EAF127272AA8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{86CD7239-61FE-4AF5-BAB7-EAF127272AA8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
