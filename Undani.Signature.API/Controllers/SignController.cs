@@ -25,19 +25,42 @@ namespace Undani.Signature.API.Controllers
         #region FormInstance
         [HttpPost]
         [Route("FormInstance/Start")]
-        public _Result FormInstanceStart([FromForm]Guid formInstanceId, [FromForm]Guid environmentId, IFormFile publicKey)
+        public string FormInstanceStart([FromForm]Guid formInstanceId, [FromForm]Guid environmentId, IFormFile publicKey)
         {
             User user = GetUser(Request);
 
             if (publicKey == null)
-                return new _Result() { Error = "Public key no selected" };
+                throw new Exception("Public key no selected");
 
-            _Result result;
+            string result = "";
             using (MemoryStream memoryStream = new MemoryStream())
             {
                 publicKey.CopyTo(memoryStream);
                 var publicKeyBytes = memoryStream.ToArray();
-                result = new FormInstanceHelper(_configuration, user, environmentId, publicKeyBytes).StartSignature(formInstanceId);
+                result = new SignFormInstanceHelper(_configuration, user, environmentId, publicKeyBytes).Start(formInstanceId);
+            }
+
+            return result;
+        }
+
+        [HttpPost]
+        [Route("FormInstance/End")]
+        public bool SignFormInstanceEnd([FromForm]Guid formInstanceId, [FromForm]Guid environmentId, IFormFile publicKey, [FromForm]string digitalSignature)
+        {
+            User user = GetUser(Request);
+
+            if (publicKey == null)
+                throw new Exception("Public key no selected");
+
+            if (string.IsNullOrWhiteSpace(digitalSignature))
+                throw new Exception("The digital signature is empty");
+
+            bool result = false;
+            using (MemoryStream memoryStream = new MemoryStream())
+            {
+                publicKey.CopyTo(memoryStream);
+                var publicKeyBytes = memoryStream.ToArray();
+                result = new SignFormInstanceHelper(_configuration, user, environmentId, publicKeyBytes).End(formInstanceId, digitalSignature);
             }
 
             return result;

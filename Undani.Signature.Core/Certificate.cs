@@ -26,6 +26,7 @@ namespace Undani.Signature.Core
         private string _rfc;
         private string _name;
         private DateTime _expirationDate;
+        private DateTime _datetimeNow;
         private string _serialNumber;
 
         public Certificate(IConfiguration configuration, User user, Guid environmentId, byte[] publicKey)
@@ -99,14 +100,9 @@ namespace Undani.Signature.Core
             get { return _expirationDate; }
         }
 
-        public Result Result
+        public DateTime DateTimeNow
         {
-            get {
-                if (_error == "")
-                    return new Result() { Number = _number, Content = _content, Error = "" };
-                else
-                    return new Result() { Number = "", Content = "", Error = _error };
-            }
+            get { return _datetimeNow; }
         }
 
         public string SerialNumber
@@ -145,7 +141,9 @@ namespace Undani.Signature.Core
 
             _expirationDate = DateTime.Parse(X509PublicKey.GetExpirationDateString());
 
-            if (ExpirationDate < GetDateTimeNow())
+            _datetimeNow = GetDateTimeNow();
+
+            if (ExpirationDate < DateTimeNow)
                 throw new Exception("The certificate has expired");
 
             _serialNumber = GetSerialNumber();
@@ -197,6 +195,7 @@ namespace Undani.Signature.Core
 
         public bool ValidateRevocation()
         {
+            ///TODO: Hacer la validacion de forma asincrona
             return true;
         }
 
@@ -213,15 +212,15 @@ namespace Undani.Signature.Core
             return hash;
         }
 
-        public bool ValidateSeal(string text, string sealWithPrivateKey)
+        public bool ValidateSeal(string content, string digitalSignature)
         {
             X509Certificate2 cert = new X509Certificate2(PublicKey);
 
             RSA csp = (RSA)cert.PublicKey.Key;
 
-            byte[] hash = GetHash(text);
+            byte[] hash = GetHash(content);
 
-            bool esValida = csp.VerifyHash(hash, Convert.FromBase64String(sealWithPrivateKey), HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+            bool esValida = csp.VerifyHash(hash, Convert.FromBase64String(digitalSignature), HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
 
             return esValida;
         }
@@ -258,7 +257,7 @@ namespace Undani.Signature.Core
 
             foreach (byte b in crc32.ComputeHash(Encoding.ASCII.GetBytes(text))) hash += b.ToString("x2").ToLower();
 
-            return hash;
+            return hash.ToUpper();
         }
     }
 }
