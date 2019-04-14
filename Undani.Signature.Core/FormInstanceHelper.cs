@@ -1,9 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
-using System.Text;
 using Undani.Signature.Core.Resource;
 
 namespace Undani.Signature.Core
@@ -26,7 +24,7 @@ namespace Undani.Signature.Core
                     cmd.Parameters.Add(new SqlParameter("@Id", SqlDbType.UniqueIdentifier) { Value = formInstanceId });
                     cmd.Parameters.Add(new SqlParameter("@EnvironmentId", SqlDbType.UniqueIdentifier) { Value = EnvironmentId });
                     cmd.Parameters.Add(new SqlParameter("@Extension", SqlDbType.VarChar, 5) { Value = "" });
-                    cmd.Parameters.Add(new SqlParameter("@Content", SqlDbType.VarChar, -1) { Value = content });                 
+                    cmd.Parameters.Add(new SqlParameter("@Content", SqlDbType.VarChar, -1) { Value = content });
                     cmd.Parameters.Add(new SqlParameter("@DateTimeNow", SqlDbType.DateTime) { Value = DateTimeNow });
 
                     cmd.ExecuteNonQuery();
@@ -95,7 +93,12 @@ namespace Undani.Signature.Core
                                 });
                             }
 
-                           // return SetFormInstanceSign(formInstance);
+                            string xml = new Xml<Document>().Serialize(document);
+
+                            valid = new FormCall(Configuration, User).UpdateSign(document.Id, xml);
+
+                            if (valid)
+                                valid = new TemplateCall(Configuration, User).SignatureGraphicRepresentation(document.EnvironmentId, xml);
                         }
                     }
                 }

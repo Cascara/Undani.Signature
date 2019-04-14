@@ -36,5 +36,26 @@ namespace Undani.Signature.Core.Resource
                        
             return JsonConvert.SerializeObject(oJson.Integration);
         }
+
+        public bool UpdateSign(Guid formInstanceId, string xml)
+        {
+            string url = Configuration["ApiForm"] + "/Execution/Form/updateSign";
+
+            using (var client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Add("Authorization", "Bearer " + User.Token);
+
+                dynamic formInstanceSign = new { Instance = formInstanceId, Sign = xml };
+
+                StringContent stringContent = new StringContent(JsonConvert.SerializeObject(formInstanceSign), Encoding.UTF8, "application/json");
+
+                HttpResponseMessage response = client.PostAsync(url, stringContent).Result;
+
+                if (response.StatusCode != HttpStatusCode.OK)
+                    throw new Exception("There was an error when trying to consume the resource apiform");
+
+                return bool.Parse(response.Content.ReadAsStringAsync().Result);
+            }
+        }
     }
 }

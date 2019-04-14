@@ -67,6 +67,51 @@ namespace Undani.Signature.API.Controllers
         }
         #endregion
 
+        #region Login
+        [HttpPost]
+        [Route("Login/Start")]
+        public string LoginStart([FromForm]Guid formInstanceId, [FromForm]Guid environmentId, IFormFile publicKey)
+        {
+            User user = GetUser(Request);
+
+            if (publicKey == null)
+                throw new Exception("Public key no selected");
+
+            string result = "";
+            using (MemoryStream memoryStream = new MemoryStream())
+            {
+                publicKey.CopyTo(memoryStream);
+                var publicKeyBytes = memoryStream.ToArray();
+                result = new SignFormInstanceHelper(_configuration, user, environmentId, publicKeyBytes).Start(formInstanceId);
+            }
+
+            return result;
+        }
+
+        [HttpPost]
+        [Route("Login/End")]
+        public bool LoginEnd([FromForm]Guid formInstanceId, [FromForm]Guid environmentId, IFormFile publicKey, [FromForm]string digitalSignature)
+        {
+            User user = GetUser(Request);
+
+            if (publicKey == null)
+                throw new Exception("Public key no selected");
+
+            if (string.IsNullOrWhiteSpace(digitalSignature))
+                throw new Exception("The digital signature is empty");
+
+            bool result = false;
+            using (MemoryStream memoryStream = new MemoryStream())
+            {
+                publicKey.CopyTo(memoryStream);
+                var publicKeyBytes = memoryStream.ToArray();
+                result = new SignFormInstanceHelper(_configuration, user, environmentId, publicKeyBytes).End(formInstanceId, digitalSignature);
+            }
+
+            return result;
+        }
+        #endregion
+
         #region Tools   
         private User GetUser(HttpRequest request)
         {
