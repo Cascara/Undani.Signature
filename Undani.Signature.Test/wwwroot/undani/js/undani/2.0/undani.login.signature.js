@@ -32,6 +32,7 @@
 
     $.fn.uLoginSignature = function (settings) {
         var signature = this;
+        var _user = {};
         settings = Settings(settings);
 
         signature = $.extend(this,
@@ -78,6 +79,9 @@
                     }
                     else
                         signature.trigger("error", "Ingrese la información requerida para la firma.");
+                },
+                User: function () {
+                    return _user;
                 }
             });
 
@@ -105,6 +109,7 @@
                         timeout: 1280000
                     })
                         .done(function (user) {
+                            _user = user;
                             signature.trigger("done", user);
                         })
                         .fail(function (jqXHR, textStatus, errorThrown) {

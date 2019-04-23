@@ -14,13 +14,19 @@ namespace Undani.Signature.Core.Resource
 
         public void CreateUser(Guid userId, Guid ownerId, string userName, string givenName, string familyName, string email, string rfc, string content)
         {           
-            var user = new { userId = userId, ownerId = ownerId, userName = userName, givenName = givenName, familyName = familyName, email = email, rfc = rfc, content = content };
+            var user = new { content = content };
 
             using (var client = new HttpClient())
-            {           
-                string url = Configuration["ApiTracking"] + "/Execution/User/Create";
-                StringContent contentJson = new StringContent(JsonConvert.SerializeObject(user), Encoding.UTF8, "application/json");
-                HttpResponseMessage response = client.PostAsync(url, contentJson).Result;
+            {
+                client.DefaultRequestHeaders.Add("Authorization", "Bearer " + User.Token);
+
+                string url = Configuration["ApiTracking"] + "/Execution/User/Create?userId=" + userId.ToString() + "&ownerId=" + ownerId.ToString() + "&userName=" + userName + "&givenName=" + givenName + "&rfc=" + rfc;
+
+                var formParameters = new List<KeyValuePair<string, string>>();
+                formParameters.Add(new KeyValuePair<string, string>("content", content));
+                var formContent = new FormUrlEncodedContent(formParameters);
+
+                HttpResponseMessage response = client.PostAsync(url, formContent).Result;
 
                 if (response.StatusCode != HttpStatusCode.OK)
                     throw new Exception("It was not possible to add the traceability page in box");

@@ -51,14 +51,14 @@
             <div class="form-group">
                 <label class="col-sm-5 control-label" for="Email">Número del centro de trabajo<span class="form-text form-text-error hidden" rel="Email">*</span>:</label>
                 <div class="col-sm-7">
-                    <input id="CentroTrabajo" type="text" placeholder="ej. A12345678" class="form-control" required data-val="true" data-val-required="El número es requerido." />
+                    <input id="CentroTrabajo" type="text" placeholder="ej. A12345678" class="form-control" required data-val="true" data-val-required="El número es requerido." value="A0000000012" />
                 </div>
             </div>
 
             <div class="form-group">
                 <label class="col-sm-5 control-label" for="password">Contraseña de e.Firma<span class="form-text form-text-error hidden" rel="Password">*</span>:</label>
                 <div class="col-sm-7">
-                    <input id="password" type="password" placeholder="Contraseña" class="form-control" required data-val="true" data-val-required="La contraseña es requerida." />
+                    <input id="pwd" type="password" placeholder="Contraseña" class="form-control" required data-val="true" data-val-required="La contraseña es requerida." value="port2737" />
                 </div>
             </div>
 
@@ -76,8 +76,12 @@
                 </div>
             </div>
 
-            <span id="waitLogin" class="pull-left" style="display: none;">Entrando, espere ...</span>
-            <button id="login" type="submit" class="btn btn-primary pull-right">Entrar</button>
+            <div style="display: none;">
+                <input id="Username" type="text" asp-for="Username" placeholder="Correo electrónico" class="form-control" required />
+                <input id="Password" type="password" asp-for="Password" placeholder="Contraseña" class="form-control" required />
+            </div>
+
+            <button id="login" type="button" class="btn btn-primary pull-right">Entrar</button>
             <br />
         </form>
     </div>
@@ -127,12 +131,12 @@
     <script type="text/javascript">
         $(document).ready(function () {
 
-            var loginForm = $('#signature').uLoginSignature({
+            var loginForm = $('#form-login').uLoginSignature({
                 host: "@configuration["ApiSignature"]",
                 ownerId: "90B28DB1-EE45-4F85-A1D4-0C0706737607",
                 publicKey: 'publicKey',
                 privateKey: 'privateKey',
-                password: 'password'
+                password: 'pwd'
             });
 
             $('#login').click(function (e) {
@@ -143,18 +147,19 @@
             });
 
             $(loginForm).on("starting", function (event) {
-                $('#waitLogin').show();
+                $('#login').text('Entrando, espere ...');
             });
 
             $(loginForm).on("error", function (event, errorThrown) {
+                $('#login').text('Entrar')
                 $('#login').attr('disabled', false);
                 alert(errorThrown);
-                $('#waitLogin').hide();
             });
 
             $(loginForm).on("done", function (event, user) {
-                // Aqui va tu post-back
-                alert(JSON.stringify(user))
+                $('#Username').val(user.userName);
+                $('#Password').val(user.password);
+                document.getElementById("form-login").submit();
             });
         });
     </script>
