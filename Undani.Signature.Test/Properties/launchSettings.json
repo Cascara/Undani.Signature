@@ -1,0 +1,29 @@
+{
+  "iisSettings": {
+    "windowsAuthentication": false,
+    "anonymousAuthentication": true,
+    "iisExpress": {
+      "applicationUrl": "http://localhost:3211",
+      "sslPort": 44370
+    }
+  },
+  "profiles": {
+    "IIS Express": {
+      "commandName": "IISExpress",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "CONFIGURATION_ENVIRONMENT": "5F14190F-3493-4A18-AB6E-22F3639263C2",
+        "CONFIGURATION_SYSTEM": "83D62D1B-7A9F-4B43-9C5B-242491EE4619",
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    },
+    "Undani.Signature.Test": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:5001;http://localhost:5000"
+    }
+  }
+}

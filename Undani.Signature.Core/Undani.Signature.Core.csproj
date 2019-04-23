@@ -20,6 +20,9 @@
     <Reference Include="System.Data.SqlClient">
       <HintPath>C:\Program Files\dotnet\sdk\NuGetFallbackFolder\system.data.sqlclient\4.4.0\ref\netstandard2.0\System.Data.SqlClient.dll</HintPath>
     </Reference>
+    <Reference Include="Undani.JWT.NetCore">
+      <HintPath>..\..\DLL\Undani.JWT.NetCore.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

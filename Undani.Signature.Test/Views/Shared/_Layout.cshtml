@@ -1,0 +1,74 @@
+﻿@{ 
+    IConfiguration configuration = ViewBag.Configuration;
+    List<string> UserRoles = ViewBag.UserRoles;
+}
+
+<!DOCTYPE html>
+<html lang="es-mx">
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Expires" content="0">
+    <meta http-equiv="Last-Modified" content="0">
+    @*<meta http-equiv="Cache-Control" content="no-cache, mustrevalidate">*@
+    <meta http-equiv="Pragma" content="no-cache">
+    <title>VMT - @ViewBag.Title</title>
+
+    <link rel="icon" type="image/x-icon" href="https://framework-gb.cdn.gob.mx/favicon.ico">
+    <link href="https://framework-gb.cdn.gob.mx/assets/styles/main.css" rel="stylesheet">
+
+    <link href="/font/font-awesome/font-awesome.css?v=1.0.0" rel="stylesheet" />
+    <link href="/font/font-awesome/font-awesome-animation.min.css" rel="stylesheet" />
+    <link href="/font/glyphicons/glyphicons.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,400,300,600,700&amp;subset=latin" media="all">
+
+    <script type="text/javascript" id="jquery" src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+
+    <link href="@configuration["WebFramework"]/gobmx/css/identity.css" rel="stylesheet">
+
+    <script type="text/javascript">
+        var configuration = {
+
+        }
+    </script>
+
+    @RenderSection("head", required: false)
+
+</head>
+<body>   
+
+    <main class="page">
+        <nav class="navbar navbar-inverse sub-navbar navbar-fixed-top">
+            <div class="container">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#subenlaces">
+                        <span class="sr-only">Interruptor de Navegación</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="/">INFONACOT</a>
+                </div>
+                <div class="collapse navbar-collapse" id="subenlaces">
+                    <ul class="nav navbar-nav navbar-right">
+                        <li><a href="https://www.fonacot.gob.mx/Paginas/AvisoPrivacidad.aspx" target="_blank">Aviso de privacidad</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        <br />
+        <div class="container main">
+            @RenderSection("breadcrumb", required: false)
+
+            @RenderBody()
+        </div>
+    </main>
+
+    <script src="https://framework-gb.cdn.gob.mx/gobmx.js"></script>
+
+    @RenderSection("script", required: false)
+
+</body>
+</html>

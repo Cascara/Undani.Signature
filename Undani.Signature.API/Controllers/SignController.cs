@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Undani.JWT;
 using Undani.Signature.Core;
+using Undani.Signature.Core.Infra;
 
 namespace Undani.Signature.API.Controllers
 {
@@ -70,10 +71,8 @@ namespace Undani.Signature.API.Controllers
         #region Login
         [HttpPost]
         [Route("Login/Start")]
-        public string LoginStart([FromForm]Guid formInstanceId, [FromForm]Guid environmentId, IFormFile publicKey)
+        public string LoginStart(IFormFile publicKey)
         {
-            User user = GetUser(Request);
-
             if (publicKey == null)
                 throw new Exception("Public key no selected");
 
@@ -82,7 +81,7 @@ namespace Undani.Signature.API.Controllers
             {
                 publicKey.CopyTo(memoryStream);
                 var publicKeyBytes = memoryStream.ToArray();
-                result = new SignFormInstanceHelper(_configuration, user, environmentId, publicKeyBytes).Start(formInstanceId);
+                result = new LoginHelper(_configuration, null, Guid.Empty, publicKeyBytes).Start();
             }
 
             return result;
@@ -90,22 +89,20 @@ namespace Undani.Signature.API.Controllers
 
         [HttpPost]
         [Route("Login/End")]
-        public bool LoginEnd([FromForm]Guid formInstanceId, [FromForm]Guid environmentId, IFormFile publicKey, [FromForm]string digitalSignature)
+        public _UserLogin LoginEnd([FromForm]Guid ownerId, IFormFile publicKey, [FromForm]string digitalSignature, [FromForm]string content)
         {
-            User user = GetUser(Request);
-
             if (publicKey == null)
                 throw new Exception("Public key no selected");
 
             if (string.IsNullOrWhiteSpace(digitalSignature))
                 throw new Exception("The digital signature is empty");
 
-            bool result = false;
+            _UserLogin result;
             using (MemoryStream memoryStream = new MemoryStream())
             {
                 publicKey.CopyTo(memoryStream);
                 var publicKeyBytes = memoryStream.ToArray();
-                result = new SignFormInstanceHelper(_configuration, user, environmentId, publicKeyBytes).End(formInstanceId, digitalSignature);
+                result = new LoginHelper(_configuration, null, Guid.Empty, publicKeyBytes).End(ownerId, digitalSignature, content);
             }
 
             return result;

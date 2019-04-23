@@ -1,0 +1,113 @@
+﻿@{
+    IConfiguration configuration = ViewBag.Configuration;
+}
+
+<!DOCTYPE html>
+<html lang="es-mx">
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>VMT - @ViewBag.Title</title>
+
+    <link rel="icon" type="image/x-icon" href="https://framework-gb.cdn.gob.mx/favicon.ico">
+    <link href="https://framework-gb.cdn.gob.mx/assets/styles/main.css" rel="stylesheet">
+
+    <link href="/font/font-awesome/font-awesome.css?v=1.0.0" rel="stylesheet" />
+    <link href="/font/font-awesome/font-awesome-animation.min.css" rel="stylesheet" />
+    <link href="/font/glyphicons/glyphicons.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,400,300,600,700&amp;subset=latin" media="all">
+
+    <script type="text/javascript" id="jquery" src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+    <script type="text/javascript" id="bootstrap" src="@configuration["WebFramework"]/gobmx/js/bootstrap.min.js"></script>
+
+    <style type="text/css">
+        #divMainContainer {
+            padding-top: 90px;
+        }
+    </style>
+
+    @RenderSection("head", required: false)
+
+</head>
+<body>
+
+    <header><nav class="navbar navbar-inverse navbar-fixed-top" role="navigation"><div class="container"><div class="navbar-header"><button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbarMainCollapse"><span class="sr-only">Interruptor de Navegación</span><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button><a class="navbar-brand" style="padding-left: 8px;" href="https://www.gob.mx/"><img src="https://framework-gb.cdn.gob.mx/assets/images/gobmxlogo-2.svg" width="75" height="23" alt="Página de inicio, Gobierno de México"></a></div><div class="collapse navbar-collapse" id="navbarMainCollapse"><ul class="nav navbar-nav navbar-right"><li><a href="https://www.gob.mx/tramites">Trámites</a></li><li><a href="https://www.gob.mx/gobierno">Gobierno</a></li><li><a href="https://www.gob.mx/participa">Participa</a></li><li><a href="https://www.gob.mx/busqueda"><span class="sr-only">Búsqueda</span><i class="icon-search"></i></a></li></ul></div></div></nav></header>
+    <nav class="navbar navbar-inverse sub-navbar navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#subenlaces">
+                    <span class="sr-only">Interruptor de Navegación</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="/">@ViewBag.Title</a>
+            </div>
+            @RenderSection("option", required: false)
+
+        </div>
+    </nav>
+
+    <main role="main">
+        <div class="container">
+            @RenderSection("header_additional", required: false)
+            <div class="row">
+                <div class="col-sm-12" id="divMainContainer" style="display: none;">
+                    @RenderBody()
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="main-footer"><div class="list-info"><div class="container"><div class="row"><div class="col-sm-4"><h5>Enlaces</h5><ul><li><a href="https://www.gob.mx/accesibilidad">Accesibilidad</a></li><li><a href="https://www.gob.mx/privacidad">Política de privacidad</a></li><li><a href="https://www.gob.mx/terminos">Términos y Condiciones</a></li><li><a href="http://www.ordenjuridico.gob.mx" target="_blank">Marco Jurídico</a></li><li><a href="http://portaltransparencia.gob.mx" target="_blank">Portal de Obligaciones de Transparencia</a></li><li><a href="https://www.infomex.org.mx/gobiernofederal/home.action" target="_blank">Sistema Infomex</a></li><li><a href="http://inicio.ifai.org.mx/SitePages/ifai.aspx" target="_blank">INAI</a></li></ul></div><div class="col-sm-4"><h5>¿Qué es gob.mx?</h5><p>Es el portal único de trámites, información y participación ciudadana.</p><p><a href="https://www.gob.mx/que-es-gobmx">Leer más</a></p><ul><li><a href="https://www.gob.mx/en/index">English</a></li><li><a href="https://www.gob.mx/temas">Temas</a></li><li><a href="http://reformas.gob.mx" target="_blank">Reformas</a></li></ul></div><div class="col-sm-4"><h5>Contacto</h5><p>Insurgentes Sur 1735, Col. Guadalupe Inn.<br>Delegación Álvaro Obregón<br>México, D.F. C.P. 01020</p> <p>gobmx@funcionpublica.gob.mx</p><p><a href="https://www.gob.mx/atencion">Atención Ciudadana</a></p><p><a href="https://www.gob.mx/tramites/ficha/SFP54">Quejas y denuncias</a></p></div></div><div class="row"><div class="col-sm-4"><form role="form" id="subscribete"><label>Mantente informado. Suscríbete.</label><div class="form-group-icon"><input type="text" class="form-control" id="email" name="email" placeholder="Ingresa tu correo electrónico"><button id="subscribe" type="button" class="blue-right btn"><i class="icon-caret-right"></i></button></div><div class="message-subscribe">Ingrese un email válido</div></form></div><div class="col-sm-4 col-sm-offset-4"><h5>Síguenos en</h5><ul class="list-inline"><li><a class="social-icon facebook" target="_blanc" href="https://www.facebook.com/gobmx">facebook</a></li><li><a class="social-icon twitter" target="_blanc" href="https://twitter.com/gobmx">twitter</a></li></ul></div></div></div></div><div class="container"><div class="row"><div class="col-sm-4"><img class="gobmx-footer" src="https://framework-gb.cdn.gob.mx/assets/images/gobmxlogo-2.svg" width="126" height="39" alt="Página de inicio, Gobierno de México"></div><div class="col-sm-4 col-sm-offset-4"></div></div></div></footer>
+
+
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('.message-subscribe').addClass("hidden");
+            $('body').on('click', '#subscribe', function (e) {
+                e.preventDefault();
+
+                var re = /^(([^<>()[\]\\.,;:\s@@\"]+(\.[^<>()[\]\\.,;:\s@@\"]+)*)|(\".+\"))@@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+                var dataString = $('#email').serialize();
+                var email = $('#email').val();
+                var url = "//www.gob.mx/subscribe";
+                var successMessage = 'Agradecemos tu registro dentro de gob.mx. De esta manera estar&aacute;s informado sobre las principales acciones y decisiones del Gobierno de la Rep&uacute;blica.<br><br>Gracias por tu inter&eacute;s y colaboraci&oacute;n. Juntos construimos <a href="/">gob.mx</a>';
+                var registeredMessage = 'Este correo electr&oacute;nico ya ha sido registrado.';
+                var failMessage = 'No se pudo registrar el correo electr&oacute;nico.';
+                var validEmail = 'Ingrese un email v&aacute;lido';
+
+                if ($.trim(email).length === 0 || re.test(email) === false) {
+                    $('.message-subscribe').removeClass("hidden").html(validEmail);
+                    return false;
+                } else {
+                    $('.message-subscribe').addClass("hidden").html();
+
+                    $.ajax({
+                        type: 'POST',
+                        data: "email=" + $('#email').val(),
+                        dataType: 'json',
+                        url: url
+                    }).done(function (data) {
+                        if (data.status === 'error') {
+                            $('.message-subscribe').removeClass("hidden").html(registeredMessage);
+                        } else {
+                            $('#email').val('');
+                            $('#email').prop('disabled', true);
+                            $('.message-subscribe').removeClass("hidden").html(successMessage);
+                        }
+                    }).fail(function () {
+                        $('.message-subscribe').removeClass("hidden").html(failMessage);
+                    });
+                }
+                return false;
+            });
+        });
+    </script>
+
+    @RenderSection("script", required: false)
+</body>
+</html>

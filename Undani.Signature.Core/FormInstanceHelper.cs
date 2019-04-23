@@ -14,7 +14,7 @@ namespace Undani.Signature.Core
         {
             string content = "||Formulario:" + formInstanceId.ToString() + "|Firmado:" + DateTimeNow.ToString("dd/MM/yyyy hh:mm:ss") + "|Contenido:" + new FormCall(Configuration, User).GetJsonFormInstance(formInstanceId) + "||";
 
-            using (SqlConnection cn = new SqlConnection(Configuration["ConnectionString:Signature"]))
+            using (SqlConnection cn = new SqlConnection(Configuration["CnDbSignature"]))
             {
                 cn.Open();
 
@@ -40,7 +40,7 @@ namespace Undani.Signature.Core
         public bool End(Guid formInstanceId, string digitalSignature)
         {
             string content = "";
-            using (SqlConnection cn = new SqlConnection(Configuration[""]))
+            using (SqlConnection cn = new SqlConnection(Configuration["CnDbSignature"]))
             {
                 cn.Open();
 
@@ -61,7 +61,7 @@ namespace Undani.Signature.Core
             bool valid = false;
             if (ValidateSeal(content, digitalSignature))
             {
-                using (SqlConnection cn = new SqlConnection(Configuration[""]))
+                using (SqlConnection cn = new SqlConnection(Configuration["CnDbSignature"]))
                 {
                     cn.Open();
                     using (SqlCommand cmd = new SqlCommand("usp_Set_SignEnd", cn))

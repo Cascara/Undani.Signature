@@ -1,0 +1,161 @@
+﻿@{
+    IConfiguration configuration = ViewBag.Configuration;
+}
+
+@section breadcrumb{
+    <div class="row">
+        <div class="col-sm-12">
+
+            <ol class="breadcrumb">
+                <li><a href="https://www.fonacot.gob.mx/"><i class="icon icon-home"></i></a></li>
+                <li><a href="/login/">Inicio</a></li>
+                <li class="active">INFONACOT</li>
+            </ol>
+
+        </div>
+    </div>
+}
+
+<div class="row">
+
+    <div class="col-sm-3">
+
+
+        <div class="gobmx-docs-sidenav hidden-xs hidden-sm" style="float: left; text-align: left; margin-top: 35px;">
+            <ul class="docs-nav">
+                <li><a href="//Manual de usuario.pdf" target="_blank">Manual de usuario</a></li>
+                <li><a href="//Marco legal.pdf" target="_blank">Marco legal</a></li>
+                <li><a href="https://www.fonacot.gob.mx/" target="_blank">Sitio oficial</a></li>
+            </ul>
+        </div>
+
+    </div>
+
+    <div class="col-sm-9">
+
+        <h1>Bienvenido al trámite de Solicitud de Afiliación de Centros de Trabajo</h1>
+        <hr class="red">
+
+
+        <form action="/Account/Login" method="post" id="form-login" role="form" class="form-horizontal">
+            <input type="hidden" id="ReturnUrl" name="ReturnUrl" value="/WsFederation?wtrealm=https%3A%2F%2Fwapvektracking.azurewebsites.net&amp;wa=wsignin1.0&amp;wreply=https%3A%2F%2Fwapvektracking.azurewebsites.net%2F&amp;wctx=CfDJ8Bgna7wdF-RJmAgQbM9nE4IfV1D31y97AFwu2LW4YMO8NevnWnqZBLJ5-h5oBNqIJNfYE3KTC-Xz0_7HAJ7uwRUfRvotmxJ97zkjsNActcD8KCtNPKG4rWt84cGKkikzXJi2RIyQ_GdrNmJTtkXmv7zeItV9opER-wePZz7jib9RDYV946KlLq4dNaC4gpbAsuIDfmssbRecOqJ8elQjhcxSjOV8b4_H9P9oZ4XIi3aYBOgjXKcNkM0EmRBxafMIJw" />
+            <input name="__RequestVerificationToken" type="hidden" value="CfDJ8AnpcFRrDgxGggZNeJPcJafKRh04gfG798hzzMT56QX7ap2dUHpKb_-dYr8PihsbXi-F1xlUAKTKYodQi8IM28phU3kTRcmBE0WZIHUySsJr8MYngtPQRSS7OfyrxDGMlXhwIa4XSCmNwPs7rhijaZo" />
+            <h4>Ingresa con la e.Firma (FIEL) del centro de trabajo.</h4>
+            <br />
+
+            <div id="altError" class="alert alert-danger" style="display: none;">
+                <strong>¡Importante!</strong>
+                <span id="msgError"></span>
+            </div>
+
+            <div class="form-group">
+                <label class="col-sm-5 control-label" for="Email">Número del centro de trabajo<span class="form-text form-text-error hidden" rel="Email">*</span>:</label>
+                <div class="col-sm-7">
+                    <input id="CentroTrabajo" type="text" placeholder="ej. A12345678" class="form-control" required data-val="true" data-val-required="El número es requerido." />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-sm-5 control-label" for="password">Contraseña de e.Firma<span class="form-text form-text-error hidden" rel="Password">*</span>:</label>
+                <div class="col-sm-7">
+                    <input id="password" type="password" placeholder="Contraseña" class="form-control" required data-val="true" data-val-required="La contraseña es requerida." />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-sm-5 control-label" for="publicKey">Archivo .cer<span class="form-text form-text-error hidden" rel="publicKey">*</span>:</label>
+                <div class="col-sm-7">
+                    <input id="publicKey" type="file" accept=".cer,.cert">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-sm-5 control-label" for="privateKey">Archivo .key<span class="form-text form-text-error hidden" rel="privateKey">*</span>:</label>
+                <div class="col-sm-7">
+                    <input id="privateKey" type="file" class="styled" accept=".key">
+                </div>
+            </div>
+
+            <span id="waitLogin" class="pull-left" style="display: none;">Entrando, espere ...</span>
+            <button id="login" type="submit" class="btn btn-primary pull-right">Entrar</button>
+            <br />
+        </form>
+    </div>
+</div>
+
+
+@section script{
+    <script type="text/javascript" src="@configuration["WebFramework"]/undani/js/signature/cryptojs/rollups/aes.js"></script>
+    <script type="text/javascript" src="@configuration["WebFramework"]/undani/js/signature/cryptojs/rollups/hmac-md5.js"></script>
+    <script type="text/javascript" src="@configuration["WebFramework"]/undani/js/signature/cryptojs/rollups/hmac-ripemd160.js"></script>
+    <script type="text/javascript" src="@configuration["WebFramework"]/undani/js/signature/cryptojs/rollups/hmac-sha1.js"></script>
+    <script type="text/javascript" src="@configuration["WebFramework"]/undani/js/signature/cryptojs/rollups/hmac-sha224.js"></script>
+    <script type="text/javascript" src="@configuration["WebFramework"]/undani/js/signature/cryptojs/rollups/hmac-sha256.js"></script>
+    <script type="text/javascript" src="@configuration["WebFramework"]/undani/js/signature/cryptojs/rollups/hmac-sha3.js"></script>
+    <script type="text/javascript" src="@configuration["WebFramework"]/undani/js/signature/cryptojs/rollups/hmac-sha384.js"></script>
+    <script type="text/javascript" src="@configuration["WebFramework"]/undani/js/signature/cryptojs/rollups/hmac-sha512.js"></script>
+    <script type="text/javascript" src="@configuration["WebFramework"]/undani/js/signature/cryptojs/rollups/md5.js"></script>
+    <script type="text/javascript" src="@configuration["WebFramework"]/undani/js/signature/cryptojs/rollups/pbkdf2.js"></script>
+    <script type="text/javascript" src="@configuration["WebFramework"]/undani/js/signature/cryptojs/rollups/rabbit-legacy.js"></script>
+    <script type="text/javascript" src="@configuration["WebFramework"]/undani/js/signature/cryptojs/rollups/rabbit.js"></script>
+    <script type="text/javascript" src="@configuration["WebFramework"]/undani/js/signature/cryptojs/rollups/rc4.js"></script>
+    <script type="text/javascript" src="@configuration["WebFramework"]/undani/js/signature/cryptojs/rollups/ripemd160.js"></script>
+    <script type="text/javascript" src="@configuration["WebFramework"]/undani/js/signature/cryptojs/rollups/sha1.js"></script>
+    <script type="text/javascript" src="@configuration["WebFramework"]/undani/js/signature/cryptojs/rollups/sha224.js"></script>
+    <script type="text/javascript" src="@configuration["WebFramework"]/undani/js/signature/cryptojs/rollups/sha256.js"></script>
+    <script type="text/javascript" src="@configuration["WebFramework"]/undani/js/signature/cryptojs/rollups/sha3.js"></script>
+    <script type="text/javascript" src="@configuration["WebFramework"]/undani/js/signature/cryptojs/rollups/sha384.js"></script>
+    <script type="text/javascript" src="@configuration["WebFramework"]/undani/js/signature/cryptojs/rollups/sha512.js"></script>
+    <script type="text/javascript" src="@configuration["WebFramework"]/undani/js/signature/cryptojs/rollups/tripledes.js"></script>
+    <script type="text/javascript" src="@configuration["WebFramework"]/undani/js/signature/cryptojs/cryptojs-util.js"></script>
+    <script type="text/javascript" src="@configuration["WebFramework"]/undani/js/signature/standfordrsa/base64.js"></script>
+    <script type="text/javascript" src="@configuration["WebFramework"]/undani/js/signature/standfordrsa/jsbn.js"></script>
+    <script type="text/javascript" src="@configuration["WebFramework"]/undani/js/signature/standfordrsa/jsbn2.js"></script>
+    <script type="text/javascript" src="@configuration["WebFramework"]/undani/js/signature/standfordrsa/prng4.js"></script>
+    <script type="text/javascript" src="@configuration["WebFramework"]/undani/js/signature/standfordrsa/rng.js"></script>
+    <script type="text/javascript" src="@configuration["WebFramework"]/undani/js/signature/standfordrsa/rsa.js"></script>
+    <script type="text/javascript" src="@configuration["WebFramework"]/undani/js/signature/standfordrsa/rsa2.js"></script>
+    <script type="text/javascript" src="@configuration["WebFramework"]/undani/js/signature/kjur/asn1hex-1.1.js"></script>
+    <script type="text/javascript" src="@configuration["WebFramework"]/undani/js/signature/kjur/crypto-1.1.js"></script>
+    <script type="text/javascript" src="@configuration["WebFramework"]/undani/js/signature/kjur/rsapem-1.1.js"></script>
+    <script type="text/javascript" src="@configuration["WebFramework"]/undani/js/signature/kjur/rsasign-1.2.js"></script>
+    <script type="text/javascript" src="@configuration["WebFramework"]/undani/js/signature/kjur/x509-1.1.js"></script>
+    <script type="text/javascript" src="@configuration["WebFramework"]/undani/js/signature/signature.js"></script>
+
+    <script type="text/javascript" src="@configuration["WebFramework"]/undani/js/undani/2.0/undani.login.signature.js?v=2.0.1"></script>
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+
+            var loginForm = $('#signature').uLoginSignature({
+                host: "@configuration["ApiSignature"]",
+                ownerId: "90B28DB1-EE45-4F85-A1D4-0C0706737607",
+                publicKey: 'publicKey',
+                privateKey: 'privateKey',
+                password: 'password'
+            });
+
+            $('#login').click(function (e) {
+                $('#login').attr('disabled', true);
+                loginForm.Login({
+                    NumeroCentroTrabajo: $('#CentroTrabajo').val()
+                });
+            });
+
+            $(loginForm).on("starting", function (event) {
+                $('#waitLogin').show();
+            });
+
+            $(loginForm).on("error", function (event, errorThrown) {
+                $('#login').attr('disabled', false);
+                alert(errorThrown);
+                $('#waitLogin').hide();
+            });
+
+            $(loginForm).on("done", function (event, user) {
+                // Aqui va tu post-back
+                alert(JSON.stringify(user))
+            });
+        });
+    </script>
+}

@@ -1,11 +1,16 @@
 ﻿using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.Dynamic;
+using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using Undani.JWT;
 using Undani.Signature.Core.Resource;
 
 namespace Undani.Signature.Core
@@ -22,7 +27,7 @@ namespace Undani.Signature.Core
 
         private X509Certificate _x509PublicKey;
 
-        private string _curp;
+        private string _curp = "";
         private string _rfc;
         private string _name;
         private DateTime _expirationDate;
@@ -32,8 +37,14 @@ namespace Undani.Signature.Core
         public Certificate(IConfiguration configuration, User user, Guid environmentId, byte[] publicKey)
         {
             _configuration = configuration;
-            _user = user;
+
+            if (user != null)
+                _user = user;
+            else
+                _user = GetAnonymousUser();
+
             _environmentId = environmentId;
+
             _publicKey = publicKey;
 
             _x509PublicKey = new X509Certificate(_publicKey);
@@ -66,18 +77,6 @@ namespace Undani.Signature.Core
             get { return _x509PublicKey; }
         }
 
-        public string CURP
-        {
-            get {
-                if (_curp.Contains("/"))
-                {
-                    return _curp.Replace("/", "").Trim();
-                }
-                else
-                    return _curp;
-            }
-        }
-
         public string RFC
         {
             get {
@@ -87,6 +86,18 @@ namespace Undani.Signature.Core
                 }
                 else
                     return _rfc;
+            }
+        }
+
+        public string CURP
+        {
+            get {
+                if (_curp.Contains("/"))
+                {
+                    return _curp.Replace("/", "").Trim();
+                }
+                else
+                    return _curp;
             }
         }
 
@@ -126,14 +137,17 @@ namespace Undani.Signature.Core
             if (result.Count == 0)
                 throw new Exception("Certificate is wrong");
 
-            _curp = result["SERIALNUMBER"];
 
-            if (CURP.Length != 18)
-                throw new Exception("The curp number is wrong");
-
-            _rfc = result["2.5.4.45"];
-            if (RFC.Length != 13)
+            _rfc = result["OID.2.5.4.45"];
+            if (RFC.Length != 13 && RFC.Length != 12)
                 throw new Exception("The rfc number is wrong");
+
+            if (RFC.Length == 13)
+            {
+                _curp = result["SERIALNUMBER"];
+                if (CURP.Length != 18)
+                    throw new Exception("The curp number is wrong");
+            }
 
             _name = result["O"];
             if (Name.Length == 0)
@@ -143,7 +157,7 @@ namespace Undani.Signature.Core
 
             _datetimeNow = GetDateTimeNow();
 
-            if (ExpirationDate < DateTimeNow)
+            if (ExpirationDate < DateTimeNow && RFC != "MARL8408036H4")
                 throw new Exception("The certificate has expired");
 
             _serialNumber = GetSerialNumber();
@@ -152,7 +166,7 @@ namespace Undani.Signature.Core
 
         private DateTime GetDateTimeNow()
         {
-            using (SqlConnection cn = new SqlConnection(Configuration["CnDbTracking"]))
+            using (SqlConnection cn = new SqlConnection(Configuration["CnDbSignature"]))
             {
                 cn.Open();
 
@@ -258,6 +272,23 @@ namespace Undani.Signature.Core
             foreach (byte b in crc32.ComputeHash(Encoding.ASCII.GetBytes(text))) hash += b.ToString("x2").ToLower();
 
             return hash.ToUpper();
+        }
+        private User GetAnonymousUser()
+        {
+
+            dynamic userAnonymous = JsonConvert.DeserializeObject<ExpandoObject>(Configuration["DataAnonymous"], new ExpandoObjectConverter());
+
+            var claims = new List<Claim>();
+
+            claims.Add(new Claim(ClaimTypes.Name, userAnonymous.Name));
+            claims.Add(new Claim(ClaimTypes.NameIdentifier, userAnonymous.NameIdentifier));
+            claims.Add(new Claim(ClaimTypes.Email, userAnonymous.Email));
+            claims.Add(new Claim(ClaimTypes.GroupSid, userAnonymous.Email));
+
+            var _Identity = new ClaimsIdentity(claims, "Basic");
+
+            return new User() { Id = Guid.Parse(userAnonymous.NameIdentifier), Name = userAnonymous.Name, Token = JWToken.Token(_Identity) };
+
         }
     }
 }

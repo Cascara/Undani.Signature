@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28010.2046
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28803.156
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Undani.Signature.API", "Undani.Signature.API\Undani.Signature.API.csproj", "{E74FA434-64F4-43DD-AAB4-1DBB905F2AEA}"
 EndProject
@@ -9,7 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Undani.Signature", "Undani.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Undani.Signature.Core", "Undani.Signature.Core\Undani.Signature.Core.csproj", "{3E2C6BCF-08D1-4717-986E-744574FDF90F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Undani.Signature.Core.Revocation", "Undani.Signature.Core.Revocation\Undani.Signature.Core.Revocation.csproj", "{86CD7239-61FE-4AF5-BAB7-EAF127272AA8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Undani.Signature.Core.Revocation", "Undani.Signature.Core.Revocation\Undani.Signature.Core.Revocation.csproj", "{86CD7239-61FE-4AF5-BAB7-EAF127272AA8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Undani.Signature.Test", "Undani.Signature.Test\Undani.Signature.Test.csproj", "{56196D3C-9701-441C-8E27-44249F2F1DD5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{86CD7239-61FE-4AF5-BAB7-EAF127272AA8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{86CD7239-61FE-4AF5-BAB7-EAF127272AA8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{86CD7239-61FE-4AF5-BAB7-EAF127272AA8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{56196D3C-9701-441C-8E27-44249F2F1DD5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{56196D3C-9701-441C-8E27-44249F2F1DD5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{56196D3C-9701-441C-8E27-44249F2F1DD5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{56196D3C-9701-441C-8E27-44249F2F1DD5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
