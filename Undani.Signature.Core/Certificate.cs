@@ -94,7 +94,7 @@ namespace Undani.Signature.Core
             get {
                 if (_curp.Contains("/"))
                 {
-                    return _curp.Replace("/", "").Trim();
+                    return _curp.Replace("/", "").Trim().Replace("\"", "").Trim();
                 }
                 else
                     return _curp;
