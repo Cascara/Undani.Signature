@@ -38,7 +38,7 @@ namespace Undani.Signature.API.Controllers
             {
                 publicKey.CopyTo(memoryStream);
                 var publicKeyBytes = memoryStream.ToArray();
-                result = new SignFormInstanceHelper(_configuration, user, environmentId, publicKeyBytes).Start(formInstanceId);
+                result = new FormInstanceHelper(_configuration, user, environmentId, publicKeyBytes).Start(formInstanceId);
             }
 
             return result;
@@ -61,7 +61,7 @@ namespace Undani.Signature.API.Controllers
             {
                 publicKey.CopyTo(memoryStream);
                 var publicKeyBytes = memoryStream.ToArray();
-                result = new SignFormInstanceHelper(_configuration, user, environmentId, publicKeyBytes).End(formInstanceId, digitalSignature);
+                result = new FormInstanceHelper(_configuration, user, environmentId, publicKeyBytes).End(formInstanceId, digitalSignature);
             }
 
             return result;
@@ -103,6 +103,57 @@ namespace Undani.Signature.API.Controllers
                 publicKey.CopyTo(memoryStream);
                 var publicKeyBytes = memoryStream.ToArray();
                 result = new LoginHelper(_configuration, null, Guid.Empty, publicKeyBytes).End(ownerId, digitalSignature, content);
+            }
+
+            return result;
+        }
+        #endregion
+
+        #region Blob
+        [HttpPost]
+        [Route("Blob/Start")]
+        public string BlobStart([FromForm]string systemNames, [FromForm]Guid environmentId, IFormFile publicKey)
+        {
+            User user = GetUser(Request);
+
+            if (publicKey == null)
+                throw new Exception("Public key no selected");
+
+            string result = "";
+            using (MemoryStream memoryStream = new MemoryStream())
+            {
+                publicKey.CopyTo(memoryStream);
+                var publicKeyBytes = memoryStream.ToArray();
+                result = new BlobHelper(_configuration, user, Guid.Empty, publicKeyBytes).Start(systemNames);
+            }
+
+            return result;
+        }
+
+        [HttpPost]
+        [Route("Blob/End")]
+        public bool SignDocumentEnd([FromForm]Guid environmentId, [FromForm]string systemNames, IFormFile publicKey, IFormFile privateKey, [FromForm] string pk, [FromForm]string digitalSignature)
+        {
+            User user = GetUser(Request);
+
+            if (publicKey == null)
+                throw new Exception("Public key no selected");
+
+            if (string.IsNullOrWhiteSpace(digitalSignature))
+                throw new Exception("The digital signature is empty");
+
+            var msPublicKey = new MemoryStream();
+            publicKey.CopyTo(msPublicKey);
+
+            var msPrivateKey = new MemoryStream();
+            privateKey.CopyTo(msPrivateKey);
+
+            bool result = false;
+            using (MemoryStream memoryStream = new MemoryStream())
+            {
+                publicKey.CopyTo(memoryStream);
+                var publicKeyBytes = memoryStream.ToArray();
+                result = new BlobHelper(_configuration, user, Guid.Empty, publicKeyBytes).End(environmentId, systemNames, msPublicKey.ToArray(), msPrivateKey.ToArray(), pk.ToCharArray(), digitalSignature);
             }
 
             return result;

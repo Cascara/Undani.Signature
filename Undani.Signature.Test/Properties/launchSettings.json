@@ -12,7 +12,7 @@
       "commandName": "IISExpress",
       "launchBrowser": true,
       "environmentVariables": {
-        "CONFIGURATION_ENVIRONMENT": "5F14190F-3493-4A18-AB6E-22F3639263C2",
+        "CONFIGURATION_ENVIRONMENT": "BDE3686A-6C0B-4485-A0F8-30F4D3B2A7A7",
         "CONFIGURATION_SYSTEM": "83D62D1B-7A9F-4B43-9C5B-242491EE4619",
         "ASPNETCORE_ENVIRONMENT": "Development"
       }

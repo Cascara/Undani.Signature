@@ -4,7 +4,8 @@
         var settings = {
             publicKey: "publicKey",
             privateKey: "privateKey",
-            password: "password"
+            password: "password",
+            loginFail: "El usuario no es valido. Revise sus datos de e.Firma y vuelva a intentarlo."
         };
 
         if (typeof s === "undefined")
@@ -12,9 +13,6 @@
         else {
             if (typeof s.host === "undefined" || s.host === "") 
                 alert("The host is not set");
-
-            if (typeof s.token === "undefined" || s.token === "")
-                alert("The token is not set");
 
             if (typeof s.environmentId === "undefined" || s.environmentId === "")
                 alert("The environment is not set");
@@ -30,6 +28,9 @@
 
             if (typeof s.password === "undefined")
                 s["password"] = settings.password;
+
+            if (typeof s.loginFail === "undefined")
+                s["loginFail"] = settings.loginFail;
         }
 
         return s;
@@ -60,15 +61,14 @@
                         var privateKey = $("#" + settings.privateKey)[0].files[0];
                         var password = $("#" + settings.password).val();
 
-                        formData.append("token", settings.token);
-                        formData.append("environmentId", settings.environmentId);
                         formData.append("formInstanceId", settings.instanceId);
+                        formData.append("environmentId", settings.environmentId);
                         formData.append("publicKey", publicKey);
 
                         signature.trigger("starting");
 
                         $.ajax({
-                            url: settings.host + "/Execution/Sign/FormInstance/Start",
+                            url: settings.host + "/Sign/FormInstance/Start",
                             data: formData,
                             processData: false,
                             contentType: false,
@@ -83,12 +83,12 @@
                                     signature.trigger("error", result.error);
                             })
                             .fail(function (jqXHR, textStatus, errorThrown) {
-                                signature.trigger("error", errorThrown);
+                                signature.trigger("error", settings.loginFail);
                             });
 
                     }
                     else
-                        signature.trigger("error", "Ingrese la información requerida para la firma.");
+                        signature.trigger("error", settings.loginFail);
                 }
             });
 
@@ -119,16 +119,16 @@
                             if (result === '') {
                                 signature.trigger("done");
                             } else {
-                                signature.trigger("error", result);
+                                signature.trigger("error", settings.loginFail);
                             }
                             
                         })
                         .fail(function (jqXHR, textStatus, errorThrown) {
-                            signature.trigger("error", errorThrown);
+                            signature.trigger("error", settings.loginFail);
                         });
                 })
                 .fail(function (result) {
-                    signature.trigger("error", result.error);
+                    signature.trigger("error", settings.loginFail);
                 });
         }
 

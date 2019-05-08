@@ -273,6 +273,7 @@ namespace Undani.Signature.Core
 
             return hash.ToUpper();
         }
+
         private User GetAnonymousUser()
         {
 
