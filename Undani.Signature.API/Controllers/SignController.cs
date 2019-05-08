@@ -153,7 +153,7 @@ namespace Undani.Signature.API.Controllers
             {
                 publicKey.CopyTo(memoryStream);
                 var publicKeyBytes = memoryStream.ToArray();
-                result = new BlobHelper(_configuration, user, Guid.Empty, publicKeyBytes).End(environmentId, systemNames, msPublicKey.ToArray(), msPrivateKey.ToArray(), pk.ToCharArray(), digitalSignature);
+                result = new BlobHelper(_configuration, user, Guid.Empty, publicKeyBytes).End(systemNames, msPrivateKey.ToArray(), pk.ToCharArray(), digitalSignature);
             }
 
             return result;
