@@ -6,9 +6,9 @@ using Undani.Signature.Core.Resource;
 
 namespace Undani.Signature.Core
 {
-    public class SignFormInstanceHelper : Certificate
+    public class FormInstanceHelper : Certificate
     {
-        public SignFormInstanceHelper(IConfiguration configuration, User user, Guid environmentId, byte[] publicKey) : base(configuration, user, environmentId, publicKey) { }
+        public FormInstanceHelper(IConfiguration configuration, User user, Guid environmentId, byte[] publicKey) : base(configuration, user, environmentId, publicKey) { }
 
         public string Start(Guid formInstanceId)
         {

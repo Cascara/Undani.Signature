@@ -4,7 +4,8 @@
         var settings = {
             publicKey: "publicKey",
             privateKey: "privateKey",
-            password: "password"
+            password: "password",
+            loginFail: "El usuario no es valido. Revise sus datos de e.Firma y vuelva a intentarlo."
         };
 
         if (typeof s === "undefined")
@@ -27,6 +28,9 @@
 
             if (typeof s.password === "undefined")
                 s["password"] = settings.password;
+
+            if (typeof s.loginFail === "undefined")
+                s["loginFail"] = settings.loginFail;
         }
 
         return s;

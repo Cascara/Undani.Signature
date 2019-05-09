@@ -32,7 +32,7 @@ namespace Undani.Signature.Core.Resource
                 response = client.PostAsync(url, contentJson).Result;
 
                 if (response.StatusCode != HttpStatusCode.OK)
-                    throw new Exception("It was not possible to add the traceability page in box");
+                    throw new Exception("It was not possible to create de user");
 
                 _UserIdentity _userIdentity = Newtonsoft.Json.JsonConvert.DeserializeObject<_UserIdentity>(response.Content.ReadAsStringAsync().Result);
                 _userIdentity.OwnerId = ownerId;
