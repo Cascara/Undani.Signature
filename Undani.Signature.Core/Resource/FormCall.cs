@@ -15,7 +15,7 @@ namespace Undani.Signature.Core.Resource
     {
         public FormCall(IConfiguration configuration, User user) : base(configuration, user) { }
 
-        public string GetJsonFormInstance(Guid formInstanceId)
+        public JObject GetJsonFormInstance(Guid formInstanceId)
         {
             string url = Configuration["ApiForm"] + "/Execution/GetJsonInstance?instanceId=" + formInstanceId;
 
@@ -30,11 +30,9 @@ namespace Undani.Signature.Core.Resource
                     throw new Exception("There was an error when trying to consume the resource apiform");
 
                 json = response.Content.ReadAsStringAsync().Result;
-            }
-
-            dynamic oJson = JsonConvert.DeserializeObject<ExpandoObject>(json, new ExpandoObjectConverter());
+            }            
                        
-            return JsonConvert.SerializeObject(oJson.Integration);
+            return JObject.Parse(json);
         }
 
         public bool UpdateSign(Guid formInstanceId, string xml)

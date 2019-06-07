@@ -1,5 +1,8 @@
 ﻿using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using Undani.Signature.Core.Resource;
@@ -12,7 +15,23 @@ namespace Undani.Signature.Core
 
         public string Start(Guid formInstanceId)
         {
-            string content = "||Formulario:" + formInstanceId.ToString() + "|Firmado:" + DateTimeNow.ToString("dd/MM/yyyy hh:mm:ss") + "|Contenido:" + new FormCall(Configuration, User).GetJsonFormInstance(formInstanceId) + "||";
+            JObject oJson = new FormCall(Configuration, User).GetJsonFormInstance(formInstanceId);
+
+            JToken jToken = oJson.SelectToken("Support.FormId");
+
+            string formJsonPathRFC = new FormHelper(Configuration, User).GetJasonPathRFC("");
+
+            if (formJsonPathRFC != string.Empty)
+            {
+                jToken = oJson.SelectToken(formJsonPathRFC);
+                ValidateSignatory((string)jToken);
+            }
+            else
+                ValidateSignatory();
+
+            jToken = oJson.SelectToken("Integration");
+
+            string content = "||Formulario:" + formInstanceId.ToString() + "|Firmado:" + DateTimeNow.ToString("dd/MM/yyyy hh:mm:ss") + "|Contenido:" + JsonConvert.SerializeObject(jToken) + "||";            
 
             using (SqlConnection cn = new SqlConnection(Configuration["CnDbSignature"]))
             {
@@ -98,7 +117,8 @@ namespace Undani.Signature.Core
                             valid = new FormCall(Configuration, User).UpdateSign(document.Id, xml);
 
                             if (valid)
-                                valid = new TemplateCall(Configuration, User).SignatureGraphicRepresentation(document.EnvironmentId, xml);
+                                valid = new TemplateCall(Configuration, User).SignatureGraphicRepresentation(document.EnvironmentId, "", xml);
+
                         }
                     }
                 }

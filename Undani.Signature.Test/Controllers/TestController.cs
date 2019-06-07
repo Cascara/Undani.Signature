@@ -19,6 +19,13 @@ namespace Undani.Signature.Test.Controllers
 
         public IActionResult EFirmaLogin()
         {
+            ViewBag.Configuration = _configuration; 
+
+            return View();
+        }
+
+        public IActionResult Sign()
+        {
             ViewBag.Configuration = _configuration;
 
             return View();

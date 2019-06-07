@@ -14,9 +14,6 @@
             if (typeof s.host === "undefined" || s.host === "") 
                 alert("The host is not set");
 
-            if (typeof s.environmentId === "undefined" || s.environmentId === "")
-                alert("The environment is not set");
-
             if (typeof s.publicKey === "undefined")
                 s["publicKey"] = settings.publicKey;
 
@@ -36,14 +33,15 @@
     $.fn.uFormSignature = function (settings) {
         var signature = this;
         var token = "";
+        var signSuccess = {};
         settings = Settings(settings);
 
         signature = $.extend(this,
             {
-                SignFormInstance: function (formInstanceId) {
+                Sign: function (elementInstanceRefId) {
                     var isRequired = true;
 
-                    if (typeof formInstanceId === "undefined" || formInstanceId === "")
+                    if (typeof elementInstanceRefId === "undefined" || elementInstanceRefId === "")
                         isRequired = false;
 
                     if (typeof $("#" + settings.publicKey)[0].files[0] === "undefined" && isRequired === true)
@@ -57,8 +55,10 @@
 
                     if (isRequired) {
 
+                        token = $("#token").val();
+
                         if (token !== "") {
-                            SignFormInstanceStart(formInstanceId, token);
+                            SignStart(elementInstanceRefId);
                         } else {
                             $.ajax({
                                 cache: false,
@@ -68,7 +68,7 @@
                             })
                                 .done(function (result) {
                                     token = result.token;
-                                    SignFormInstanceStart(formInstanceId);
+                                    SignStart(elementInstanceRefId);
                                 })
                                 .fail(function (jqXHR, textStatus, errorThrown) {
                                     signature.trigger("error", settings.loginFail);
@@ -78,61 +78,24 @@
 
                     }
                     else
-                        signature.trigger("error", settings.loginFail);
-                },
-                SignBlob: function (systemNames) {
-                    if (typeof systemNames === "undefined" || systemNames === "")
-                        isRequired = false;
-
-                    if (typeof $("#" + settings.publicKey)[0].files[0] === "undefined" && isRequired === true)
-                        isRequired = false;
-
-                    if (typeof $("#" + settings.privateKey)[0].files[0] === "undefined" && isRequired === true)
-                        isRequired = false;
-
-                    if ($("#" + settings.password).val() === "" && isRequired === true)
-                        isRequired = false;
-
-                    if (isRequired) {
-
-                        if (token !== "") {
-                            SignFormInstanceStart(formInstanceId, token);
-                        } else {
-                            $.ajax({
-                                cache: false,
-                                url: "/Accoun/GetToken",
-                                dataType: "json",
-                                timeout: 1280000
-                            })
-                                .done(function (result) {
-                                    token = result.token;
-                                    SignFormInstanceStart(formInstanceId);
-                                })
-                                .fail(function (jqXHR, textStatus, errorThrown) {
-                                    signature.trigger("error", settings.loginFail);
-                                });
-                        }
-                    }
-                    else
-                        signature.trigger("error", settings.loginFail);
+                        signature.trigger("error", "No existe la información suficiente para continuar con la firma electrónica.");
                 }
 
             });
 
-        function SignFormInstanceStart(formInstanceId) {
+        function SignStart(elementInstanceRefId) {
             var formData = new FormData();
             var publicKey = $("#" + settings.publicKey)[0].files[0];
             var privateKey = $("#" + settings.privateKey)[0].files[0];
             var password = $("#" + settings.password).val();
 
-            formData.append("formInstanceId", formInstanceId);
-            formData.append("environmentId", settings.environmentId);
+            formData.append("elementInstanceRefId", elementInstanceRefId);
             formData.append("publicKey", publicKey);
 
             signature.trigger("starting");
 
             $.ajax({
-                url: settings.host + "/Sign/FormInstance/Start",
+                url: settings.host + "/Sign/Start",
                 data: formData,
                 processData: false,
                 contentType: false,
@@ -141,33 +104,48 @@
                 headers: { Authorization: token },
                 timeout: 1280000
             })
-                .done(function (content) {
-                    if (result.error === '')
-                        SignFormInstanceEnd(publicKey, privateKey, password, content);
+                .done(function (signResults) {
+                    if (signResults.length > 0) {
+                        for (var i = 0; i < signResults.length; i++) {
+                            signSuccess[signResults[i].key] = false;
+                        }
+
+                        for (var j = 0; j < signResults.length; j++) {
+                            switch (signResults[i].type) {
+
+                                case 1:
+                                    SignTextEnd(publicKey, privateKey, password, elementInstanceRefId, signResults[i].content, signResults[i].key, signResults[i].template);
+                                    break;
+                                case 2:
+                                    break;
+                            }
+                        }
+                    }
                     else
-                        signature.trigger("error", result.error);
+                        signature.trigger("error", "No existe la información suficiente para continuar con la firma electrónica.");
                 })
                 .fail(function (jqXHR, textStatus, errorThrown) {
                     signature.trigger("error", settings.loginFail);
                 });
         }
 
-        function SignFormInstanceEnd(publicKey, privateKey, password, content, token) {
-            Signature.Crypto.SignAsync(privateKey, password, content.contentAsBase64, "sha256")
+        function SignTextEnd(publicKey, privateKey, password, elementInstanceRefId, content, key, template) {            
+            Signature.Crypto.SignAsync(privateKey, password, content, "sha256")
                 .done(function (result) {
                     if (result.error) {
                         signature.trigger("error", result.error);
-                        return;
+                        return false;
                     }
                     
                     var formData = new FormData();
-                    formData.append("formInstanceId", formInstanceId);
-                    formData.append("environmentId", settings.environmentId);
+                    formData.append("elementInstanceRefId", elementInstanceRefId);
+                    formData.append("key", key);
+                    formData.append("template", template);
                     formData.append("publicKey", publicKey);
                     formData.append("digitalSignature", Signature.Crypto.ArrayToBase64(result.signatureAsArray));
 
                     $.ajax({
-                        url: settings.host + "/Sign/FormInstance/End",
+                        url: settings.host + "/Sign/Text/End",
                         data: formData,
                         processData: false,
                         contentType: false,
@@ -178,94 +156,76 @@
                     })
                         .done(function (result) {
                             if (result === true) {
-                                signature.trigger("done");
+                                SignSuccess(key);
                             } else {
-                                signature.trigger("error", result);
-                            }
-                            
-                        })
-                        .fail(function (jqXHR, textStatus, errorThrown) {
-                            signature.trigger("error", settings.loginFail);
-                        });
-                })
-                .fail(function (result) {
-                    signature.trigger("error", result.error);
-                });
-        }
-
-        function SignBlobStart(systemNames) {
-            var formData = new FormData();
-            var publicKey = $("#" + settings.publicKey)[0].files[0];
-            var privateKey = $("#" + settings.privateKey)[0].files[0];
-            var password = $("#" + settings.password).val();
-
-            formData.append("systemNames", systemNames);
-            formData.append("environmentId", settings.environmentId);
-            formData.append("publicKey", publicKey);
-
-            signature.trigger("starting");
-
-            $.ajax({
-                url: settings.host + "/Sign/Blob/Start",
-                data: formData,
-                processData: false,
-                contentType: false,
-                enctype: 'multipart/form-data',
-                type: 'POST',
-                headers: { Authorization: token },
-                timeout: 1280000
-            })
-                .done(function (content) {
-                    if (result.error === '')
-                        SignBlobEnd(publicKey, privateKey, password, content, systemNames);
-                    else
-                        signature.trigger("error", result.error);
-                })
-                .fail(function (jqXHR, textStatus, errorThrown) {
-                    signature.trigger("error", errorThrown);
-                });
-
-        }
-
-        function SignBlobEnd(publicKey, privateKey, password, content, systemNames) {
-            Signature.Crypto.SignAsync(privateKey, password, content.contentAsBase64, "sha256")
-                .done(function (result) {
-                    if (result.error) {
-                        signature.trigger("error", result.error);
-                        return;
-                    }
-
-                    var formData = new FormData();
-
-                    formData.append("environmentId", settings.environmentId);
-                    formData.append("systemNames", systemNames);
-                    formData.append("publicKey", publicKey);
-                    formData.append("privateKey", privateKey);
-                    formData.append("pk", password);
-                    formData.append("digitalSignature", Signature.Crypto.ArrayToBase64(result.signatureAsArray));
-
-                    $.ajax({
-                        url: settings.host + "/Sign/Document/End",
-                        data: formData,
-                        processData: false,
-                        contentType: false,
-                        enctype: 'multipart/form-data',
-                        headers: { Authorization: token },
-                        type: 'POST'
-                    })
-                        .done(function (result) {
-                            if (result === true)
-                                signature.trigger("done");
-                            else
-                                signature.trigger("error", result);
+                                signature.trigger("error", settings.loginFail);
+                                console.log("Fail to create: " + template);
+                            }                            
                         })
                         .fail(function (jqXHR, textStatus, errorThrown) {
                             signature.trigger("error", errorThrown);
                         });
                 })
                 .fail(function (result) {
-                    signature.trigger("error", result.error);
+                    signature.trigger("error", settings.loginFail);
                 });
+        }
+
+        function SignPDFEnd(publicKey, privateKey, password, elementInstanceRefId, content, key, template) {
+            Signature.Crypto.SignAsync(privateKey, password, content, "sha256")
+                .done(function (result) {
+                    if (result.error) {
+                        signature.trigger("error", result.error);
+                        return false;
+                    }
+
+                    var formData = new FormData();
+                    formData.append("elementInstanceRefId", elementInstanceRefId);
+                    formData.append("key", key);
+                    formData.append("template", template);
+                    formData.append("publicKey", publicKey);
+                    formData.append("privateKey", privateKey);
+                    formData.append("pk", password);
+                    formData.append("digitalSignature", Signature.Crypto.ArrayToBase64(result.signatureAsArray));
+
+                    $.ajax({
+                        url: settings.host + "/Sign/PDF/End",
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                        enctype: 'multipart/form-data',
+                        type: 'POST',
+                        headers: { Authorization: token },
+                        timeout: 1280000
+                    })
+                        .done(function (result) {
+                            if (result === true) {
+                                SignSuccess(key);
+                            } else {
+                                signature.trigger("error", settings.loginFail);
+                                console.log("Fail to create: " + template);
+                            }
+                        })
+                        .fail(function (jqXHR, textStatus, errorThrown) {
+                            signature.trigger("error", errorThrown);
+                        });
+                })
+                .fail(function (result) {
+                    signature.trigger("error", settings.loginFail);
+                });
+        }
+
+        function SignSuccess(currentKey) {
+            signSuccess[currentKey] = true;
+
+            var done = true;
+            for (var key in signSuccess) {
+                if (signSuccess[key] === false)
+                    done = false;
+            }
+
+            if (done)
+                signature.trigger("done");
         }
 
         return signature;

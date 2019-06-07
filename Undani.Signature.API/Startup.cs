@@ -35,6 +35,8 @@ namespace Undani.Signature.API
                 app.UseDeveloperExceptionPage();
             }
 
+            app.UseStaticFiles();
+
             app.UseCors(builder => builder
                                     .AllowAnyOrigin()
                                     .AllowAnyMethod()

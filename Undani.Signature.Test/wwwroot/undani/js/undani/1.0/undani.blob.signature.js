@@ -74,7 +74,7 @@
                     
                 }
             }
-            });
+        });
 
         function SealWithPrivateKey(token, publicKey, privateKey, password, pkr, environmentId, systemNames) {
             Signature.Crypto.SignAsync(privateKey, password, pkr.contentAsBase64, "sha256")

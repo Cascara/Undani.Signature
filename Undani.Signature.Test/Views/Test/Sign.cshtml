@@ -37,7 +37,7 @@
         <hr class="red">
 
 
-        <form action="/Account/Login" method="post" id="form-login" role="form" class="form-horizontal">
+        <form method="post" id="form-signature" role="form" class="form-horizontal">
             <input type="hidden" id="ReturnUrl" name="ReturnUrl" value="/WsFederation?wtrealm=https%3A%2F%2Fwapvektracking.azurewebsites.net&amp;wa=wsignin1.0&amp;wreply=https%3A%2F%2Fwapvektracking.azurewebsites.net%2F&amp;wctx=CfDJ8Bgna7wdF-RJmAgQbM9nE4IfV1D31y97AFwu2LW4YMO8NevnWnqZBLJ5-h5oBNqIJNfYE3KTC-Xz0_7HAJ7uwRUfRvotmxJ97zkjsNActcD8KCtNPKG4rWt84cGKkikzXJi2RIyQ_GdrNmJTtkXmv7zeItV9opER-wePZz7jib9RDYV946KlLq4dNaC4gpbAsuIDfmssbRecOqJ8elQjhcxSjOV8b4_H9P9oZ4XIi3aYBOgjXKcNkM0EmRBxafMIJw" />
             <input name="__RequestVerificationToken" type="hidden" value="CfDJ8AnpcFRrDgxGggZNeJPcJafKRh04gfG798hzzMT56QX7ap2dUHpKb_-dYr8PihsbXi-F1xlUAKTKYodQi8IM28phU3kTRcmBE0WZIHUySsJr8MYngtPQRSS7OfyrxDGMlXhwIa4XSCmNwPs7rhijaZo" />
             <h4>Ingresa con la e.Firma (FIEL) del centro de trabajo.</h4>
@@ -46,6 +46,13 @@
             <div id="altError" class="alert alert-danger" style="display: none;">
                 <strong>¡Importante!</strong>
                 <span id="msgError"></span>
+            </div>
+
+            <div class="form-group">
+                <label class="col-sm-5 control-label" for="Email">&nbsp;</label>
+                <div class="col-sm-7">
+                    <input id="token" type="text" class="form-control" required data-val="true" data-val-required="" />
+                </div>
             </div>
 
             <div class="form-group">
@@ -81,7 +88,7 @@
                 <input id="Password" type="password" asp-for="Password" placeholder="Contraseña" class="form-control" required />
             </div>
 
-            <button id="login" type="button" class="btn btn-primary pull-right">Entrar</button>
+            <button id="sign" type="button" class="btn btn-primary pull-right">Firmar</button>
             <br />
         </form>
     </div>
@@ -126,40 +133,35 @@
     <script type="text/javascript" src="@configuration["WebFramework"]/undani/js/signature/kjur/x509-1.1.js"></script>
     <script type="text/javascript" src="@configuration["WebFramework"]/undani/js/signature/signature.js"></script>
 
-    <script type="text/javascript" src="@configuration["WebFramework"]/undani/js/undani/2.0/undani.login.signature.js?v=2.0.1"></script>
+    <script type="text/javascript" src="@configuration["WebFramework"]/undani/js/undani/2.0/undani.signature.js?v=2.0.1"></script>
 
     <script type="text/javascript">
         $(document).ready(function () {
 
-            var loginForm = $('#form-login').uLoginSignature({
+            var formSignature = $('#form-signature').uFormSignature({
                 host: "@configuration["ApiSignature"]",
-                ownerId: "90B28DB1-EE45-4F85-A1D4-0C0706737607",
                 publicKey: 'publicKey',
                 privateKey: 'privateKey',
                 password: 'pwd'
             });
 
-            $('#login').click(function (e) {
-                $('#login').attr('disabled', true);
-                loginForm.Login({
-                    RFC: $('#RFC').val()
-                });
+            $('#sign').click(function (e) {
+                $('#sign').attr('disabled', true);
+                formSignature.Sign("C6960F33-BC0A-4763-B32A-D511235C9754");
             });
 
-            $(loginForm).on("starting", function (event) {
-                $('#login').text('Entrando, espere ...');
+            $(formSignature).on("starting", function (event) {
+                $('#sign').text('Firmando, espere ...');
             });
 
-            $(loginForm).on("error", function (event, errorThrown) {
-                $('#login').text('Entrar')
-                $('#login').attr('disabled', false);
+            $(formSignature).on("error", function (event, errorThrown) {
+                $('#sign').text('Firmar')
+                $('#sign').attr('disabled', false);
                 alert(errorThrown);
             });
 
-            $(loginForm).on("done", function (event, user) {
-                $('#Username').val(user.userName);
-                $('#Password').val(user.password);
-                document.getElementById("form-login").submit();
+            $(formSignature).on("done", function (event) {
+                alert("Done");
             });
         });
     </script>

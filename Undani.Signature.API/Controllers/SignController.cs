@@ -23,6 +23,80 @@ namespace Undani.Signature.API.Controllers
             _configuration = configuration;
         }
 
+        #region Sign
+        [HttpPost]
+        [Route("Start")]
+        public List<SignResult> Start([FromForm]Guid elementInstanceRefId, IFormFile publicKey)
+        {
+            User user = GetUser(Request);
+
+            if (publicKey == null)
+                throw new Exception("Public key no selected");
+
+            List<SignResult> signResults = new List<SignResult>();
+            using (MemoryStream memoryStream = new MemoryStream())
+            {
+                publicKey.CopyTo(memoryStream);
+                var publicKeyBytes = memoryStream.ToArray();
+                signResults = new SignHelper(_configuration, user, Guid.Empty, publicKeyBytes).Start(elementInstanceRefId);
+            }
+
+            return signResults;
+        }
+
+        [HttpPost]
+        [Route("Text/End")]
+        public bool SetSignText([FromForm]Guid elementInstanceRefId, [FromForm] string key, [FromForm] string template, IFormFile publicKey, [FromForm]string digitalSignature)
+        {
+            User user = GetUser(Request);
+
+            if (publicKey == null)
+                throw new Exception("Public key no selected");
+
+            if (string.IsNullOrWhiteSpace(digitalSignature))
+                throw new Exception("The digital signature is empty");
+
+            bool result = false;
+            using (MemoryStream memoryStream = new MemoryStream())
+            {
+                publicKey.CopyTo(memoryStream);
+                var publicKeyBytes = memoryStream.ToArray();
+                result = new SignHelper(_configuration, user, Guid.Empty, publicKeyBytes).SetSignText(elementInstanceRefId, key, template, digitalSignature);
+            }
+
+            return result;
+        }
+
+        [HttpPost]
+        [Route("PDF/End")]
+        public bool SetSignPDF([FromForm]Guid elementInstanceRefId, [FromForm] string key, [FromForm] string template, IFormFile publicKey, IFormFile privateKey, [FromForm] string pk, [FromForm]string digitalSignature)
+        {
+            User user = GetUser(Request);
+
+            if (publicKey == null)
+                throw new Exception("Public key no selected");
+
+            if (string.IsNullOrWhiteSpace(digitalSignature))
+                throw new Exception("The digital signature is empty");
+
+            var msPublicKey = new MemoryStream();
+            publicKey.CopyTo(msPublicKey);
+
+            var msPrivateKey = new MemoryStream();
+            privateKey.CopyTo(msPrivateKey);
+
+            bool result = false;
+            using (MemoryStream memoryStream = new MemoryStream())
+            {
+                publicKey.CopyTo(memoryStream);
+                var publicKeyBytes = memoryStream.ToArray();
+                result = new SignHelper(_configuration, user, Guid.Empty, publicKeyBytes).SetSignPDF(elementInstanceRefId, key, template, msPrivateKey.ToArray(), pk.ToCharArray(), digitalSignature);
+            }
+
+            return result;
+        }
+        #endregion
+
         #region FormInstance
         [HttpPost]
         [Route("FormInstance/Start")]
@@ -186,6 +260,8 @@ namespace Undani.Signature.API.Controllers
 
             if (user.Id == Guid.Empty)
                 throw new Exception("The access is invalid");
+            
+            user = new UserHelper(_configuration, user).User;
 
             return user;
         }

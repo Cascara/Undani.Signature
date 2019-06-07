@@ -13,7 +13,7 @@ namespace Undani.Signature.Core.Resource
     {
         public TemplateCall(IConfiguration configuration, User user) : base(configuration, user) { }
 
-        public bool SignatureGraphicRepresentation(Guid environmentId, string xml)
+        public dynamic SignatureGraphicRepresentation(Guid environmentId, string template, string xml)
         {
             string url = Configuration["ApiTemplate"] + "/Excecution/Template/SignatureGraphicRepresentation";
 
@@ -21,7 +21,7 @@ namespace Undani.Signature.Core.Resource
             {
                 client.DefaultRequestHeaders.Add("Authorization", "Bearer " + User.Token);
 
-                dynamic formInstanceSign = new { EnviromentId = environmentId, Xml = xml };
+                dynamic formInstanceSign = new { DocumentType = template, Xml = xml };
 
                 StringContent stringContent = new StringContent(JsonConvert.SerializeObject(formInstanceSign), Encoding.UTF8, "application/json");
 
@@ -32,7 +32,7 @@ namespace Undani.Signature.Core.Resource
 
                 dynamic response = JsonConvert.DeserializeObject<ExpandoObject>(httpResponseMessage.Content.ReadAsStringAsync().Result, new ExpandoObjectConverter());
 
-                return !response.Error;
+                return response;
             }
         }
     }

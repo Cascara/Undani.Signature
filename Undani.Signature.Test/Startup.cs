@@ -56,7 +56,7 @@ namespace Undani.Signature.Test
             {
                 routes.MapRoute(
                     name: "default",
-                    template: "{controller=Test}/{action=eFirmaLogin}/{id?}");
+                    template: "{controller=Test}/{action=Sign}/{id?}");
             });
         }
     }

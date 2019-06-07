@@ -82,10 +82,10 @@ namespace Undani.Signature.Core
             get {
                 if (_rfc.Contains("/"))
                 {
-                    return _rfc.Substring(_rfc.IndexOf("/") + 1).Trim();
+                    return _rfc.Substring(_rfc.IndexOf("/") + 1).Trim().ToUpper();
                 }
                 else
-                    return _rfc;
+                    return _rfc.ToUpper();
             }
         }
 
@@ -290,6 +290,20 @@ namespace Undani.Signature.Core
 
             return new User() { Id = Guid.Parse(userAnonymous.NameIdentifier), Name = userAnonymous.Name, Token = JWToken.Token(_Identity) };
 
+        }
+
+        public void ValidateSignatory(string rfc = "")
+        {
+            if (rfc != "")
+            {
+                if (rfc.ToUpper() != RFC)
+                    throw new Exception("The signer is not correct");
+            }
+            else
+            {
+                if (User.RFC != RFC)
+                    throw new Exception("The signer is not correct");
+            }
         }
     }
 }

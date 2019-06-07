@@ -30,6 +30,16 @@ namespace Undani.Signature.Core
             {
                 string password = GetCrc32(RFC + DateTimeNow.ToString("dd/MM/yyyy hh:mm:ss"));
 
+                _UserIdentity _userIdentity = new _UserIdentity();
+                if (password == _userLogin.Password)
+                {
+                    _userIdentity = new IdentityCall(Configuration, User).CreateUser(ownerId, Name, RFC, password);
+
+                    TrackingCall trackingCall = new TrackingCall(Configuration, User);
+
+                    trackingCall.CreateUser(_userIdentity.SubjectId, ownerId, _userIdentity.Name, _userIdentity.GivenName, _userIdentity.FamilyName, _userIdentity.Email, RFC, content);
+                }
+
                 using (SqlConnection cn = new SqlConnection(Configuration["CnDbSignature"]))
                 {
                     cn.Open();
@@ -41,21 +51,13 @@ namespace Undani.Signature.Core
                         cmd.Parameters.Add(new SqlParameter("@UserName", SqlDbType.VarChar, 100) { Value = Name });
                         cmd.Parameters.Add(new SqlParameter("@Password", SqlDbType.VarChar, 250) { Direction = ParameterDirection.InputOutput, Value = password });
                         cmd.Parameters.Add(new SqlParameter("@Content", SqlDbType.VarChar, 2000) { Value = content });
+                        cmd.Parameters.Add(new SqlParameter("@UserId", SqlDbType.UniqueIdentifier) { Value = _userIdentity.SubjectId });
 
                         cmd.ExecuteNonQuery();
 
                         _userLogin.UserName = RFC;
                         _userLogin.Password = (string)cmd.Parameters["@Password"].Value;
                     }
-                }
-
-                if (password == _userLogin.Password)
-                {
-                    _UserIdentity _userIdentity = new IdentityCall(Configuration, User).CreateUser(ownerId, Name, RFC, password);
-
-                    TrackingCall trackingCall = new TrackingCall(Configuration, User);
-
-                    trackingCall.CreateUser(_userIdentity.SubjectId, ownerId, _userIdentity.Name, _userIdentity.GivenName, _userIdentity.FamilyName, _userIdentity.Email, RFC, content);
                 }
             }
 
