@@ -96,7 +96,7 @@ namespace Undani.Signature.Core
                         cmd.Parameters.Add(new SqlParameter("@DigitalSignature", SqlDbType.VarChar, 1000) { Value = digitalSignature });
                         cmd.Parameters.Add(new SqlParameter("@DateTimeNow", SqlDbType.DateTime) { Value = DateTimeNow });
 
-                        Document document = new Document() { Id = formInstanceId, EnvironmentId = EnvironmentId, ContentSigned = content };
+                        DocumentSigned document = new DocumentSigned() { Id = formInstanceId, EnvironmentId = EnvironmentId, ContentSigned = content };
                         using (SqlDataReader reader = cmd.ExecuteReader())
                         {
                             while (reader.Read())
@@ -112,7 +112,7 @@ namespace Undani.Signature.Core
                                 });
                             }
 
-                            string xml = new Xml<Document>().Serialize(document);
+                            string xml = new Xml<DocumentSigned>().Serialize(document);
 
                             valid = new FormCall(Configuration, User).UpdateSign(document.Id, xml);
 

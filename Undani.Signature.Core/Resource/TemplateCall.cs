@@ -13,7 +13,7 @@ namespace Undani.Signature.Core.Resource
     {
         public TemplateCall(IConfiguration configuration, User user) : base(configuration, user) { }
 
-        public dynamic SignatureGraphicRepresentation(Guid environmentId, string template, string xml)
+        public dynamic SignatureGraphicRepresentation(Guid systemName, string originalName, Guid environmentId, string template, string xml)
         {
             string url = Configuration["ApiTemplate"] + "/Excecution/Template/SignatureGraphicRepresentation";
 
@@ -21,7 +21,7 @@ namespace Undani.Signature.Core.Resource
             {
                 client.DefaultRequestHeaders.Add("Authorization", "Bearer " + User.Token);
 
-                dynamic formInstanceSign = new { DocumentType = template, Xml = xml };
+                dynamic formInstanceSign = new { SystemName = systemName, OriginalName = originalName, DocumentType = template, Xml = xml };
 
                 StringContent stringContent = new StringContent(JsonConvert.SerializeObject(formInstanceSign), Encoding.UTF8, "application/json");
 
@@ -30,7 +30,9 @@ namespace Undani.Signature.Core.Resource
                 if (httpResponseMessage.StatusCode != HttpStatusCode.OK)
                     throw new Exception("There was an error when trying to consume the resource apiform");
 
-                dynamic response = JsonConvert.DeserializeObject<ExpandoObject>(httpResponseMessage.Content.ReadAsStringAsync().Result, new ExpandoObjectConverter());
+                string json = httpResponseMessage.Content.ReadAsStringAsync().Result;
+
+                dynamic response = JsonConvert.DeserializeObject<ExpandoObject>(json, new ExpandoObjectConverter());
 
                 return response;
             }

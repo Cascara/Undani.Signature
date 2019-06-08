@@ -66,13 +66,13 @@ namespace Undani.Signature.Core.Resource
             }
         }
 
-        public bool SetActivityInstanceDocumentSigned(Guid activityInstanceRefId, string key, DocumentSigned documentSigned)
+        public bool SetActivityInstanceDocumentSigned(Guid activityInstanceRefId, string key, ActivityInstanceDocumentSigned elementInstanceDocumentSigned)
         {
             using (var client = new HttpClient())
             {
                 client.DefaultRequestHeaders.Add("Authorization", User.Token);
 
-                string url = Configuration["ApiTracking"] + "/Execution/ActivityInstance/SetDocumentSigned?elementInstanceRefId=" + activityInstanceRefId.ToString() + "&key=" + key + "&documentSigned=" + JsonConvert.SerializeObject(documentSigned);
+                string url = Configuration["ApiTracking"] + "/Execution/ActivityInstance/SetDocumentSigned?elementInstanceRefId=" + activityInstanceRefId.ToString() + "&key=" + key + "&documentSigned=" + JsonConvert.SerializeObject(elementInstanceDocumentSigned);
 
                 HttpResponseMessage httpResponseMessage = client.GetAsync(url).Result;
 

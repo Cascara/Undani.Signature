@@ -111,10 +111,10 @@
                         }
 
                         for (var j = 0; j < signResults.length; j++) {
-                            switch (signResults[i].type) {
+                            switch (signResults[j].type) {
 
                                 case 1:
-                                    SignTextEnd(publicKey, privateKey, password, elementInstanceRefId, signResults[i].content, signResults[i].key, signResults[i].template);
+                                    SignTextEnd(publicKey, privateKey, password, elementInstanceRefId, signResults[j].content, signResults[j].key, signResults[j].template);
                                     break;
                                 case 2:
                                     break;

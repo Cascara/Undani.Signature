@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 namespace Undani.Signature
 {
-    public class Document
+    public class DocumentSigned
     {
-        public Document()
+        public DocumentSigned()
         {
             Signs = new List<Sign>();
         }

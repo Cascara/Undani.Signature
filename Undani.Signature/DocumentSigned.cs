@@ -4,10 +4,12 @@ using System.Text;
 
 namespace Undani.Signature
 {
-    public class DocumentSigned
+    public class Document
     {
-        public string SystemName { get; set; }
+        public Guid FormInstanceId { get; set; }
+        public Guid SystemName { get; set; }
         public string OriginalName { get; set; }
-        public string Hash { get; set; }
+        public string Content { get; set; }
+        public Guid EnvironmentId { get; set; }
     }
 }
