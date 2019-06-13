@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Data.SqlClient;
-using System.Text;
-using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json;
+﻿using Microsoft.Extensions.Configuration;
+using System;
 using Undani.Signature.Core.Infra;
-using Undani.Signature.Core.Resource;
 
 namespace Undani.Signature.Core
 {
@@ -16,7 +10,7 @@ namespace Undani.Signature.Core
 
         public string Start()
         {
-            string signNumber = "||SignNumber:" + GetCrc32(DateTimeNow.ToString("dd/MM/yyyy")) +  SerialNumber + "||";
+            string signNumber = "||SignNumber:" + GetCrc32(DateTimeNow.ToString("dd/MM/yyyy")) + SerialNumber + "||";
 
             return Convert.ToBase64String(GetHash(signNumber));
         }
@@ -25,43 +19,25 @@ namespace Undani.Signature.Core
         {
             string signNumber = "||SignNumber:" + GetCrc32(DateTimeNow.ToString("dd/MM/yyyy")) + SerialNumber + "||";
 
-            _UserLogin _userLogin = new _UserLogin();
             if (ValidateSeal(signNumber, digitalSignature))
             {
-                string password = GetCrc32(RFC + DateTimeNow.ToString("dd/MM/yyyy hh:mm:ss"));
+                UserHelper userHelper = new UserHelper(Configuration, User);
 
-                _UserIdentity _userIdentity = new _UserIdentity();
-                if (password == _userLogin.Password)
+                string password = userHelper.GetPassword(RFC, content);
+
+                if (password == "")
                 {
-                    _userIdentity = new IdentityCall(Configuration, User).CreateUser(ownerId, Name, RFC, password);
+                    password = GetCrc32(RFC + DateTimeNow.ToString("dd/MM/yyyy hh:mm:ss"));
 
-                    TrackingCall trackingCall = new TrackingCall(Configuration, User);
-
-                    trackingCall.CreateUser(_userIdentity.SubjectId, ownerId, _userIdentity.Name, _userIdentity.GivenName, _userIdentity.FamilyName, _userIdentity.Email, RFC, content);
+                    return userHelper.CreateUser(ownerId, RFC, Name, content, password);
                 }
-
-                using (SqlConnection cn = new SqlConnection(Configuration["CnDbSignature"]))
+                else
                 {
-                    cn.Open();
-                    using (SqlCommand cmd = new SqlCommand("usp_Create_User", cn))
-                    {
-
-                        cmd.CommandType = CommandType.StoredProcedure;
-                        cmd.Parameters.Add(new SqlParameter("@RFC", SqlDbType.VarChar, 13) { Value = RFC });
-                        cmd.Parameters.Add(new SqlParameter("@UserName", SqlDbType.VarChar, 100) { Value = Name });
-                        cmd.Parameters.Add(new SqlParameter("@Password", SqlDbType.VarChar, 250) { Direction = ParameterDirection.InputOutput, Value = password });
-                        cmd.Parameters.Add(new SqlParameter("@Content", SqlDbType.VarChar, 2000) { Value = content });
-                        cmd.Parameters.Add(new SqlParameter("@UserId", SqlDbType.UniqueIdentifier) { Value = _userIdentity.SubjectId });
-
-                        cmd.ExecuteNonQuery();
-
-                        _userLogin.UserName = RFC;
-                        _userLogin.Password = (string)cmd.Parameters["@Password"].Value;
-                    }
+                    return new _UserLogin() { UserName = RFC, Password = password };
                 }
             }
 
-            return _userLogin;
+            throw new Exception("The access is invalid");
         }
     }
 }

@@ -18,7 +18,7 @@ namespace Undani.Signature.Core.Resource
 
             using (var client = new HttpClient())
             {
-                client.DefaultRequestHeaders.Add("Authorization", "Bearer " + User.Token);
+                client.DefaultRequestHeaders.Add("Authorization", User.Token);
 
                 string url = Configuration["ApiTracking"] + "/Execution/User/Create?userId=" + userId.ToString() + "&ownerId=" + ownerId.ToString() + "&userName=" + userName + "&givenName=" + givenName + "&rfc=" + rfc;
 
@@ -66,19 +66,21 @@ namespace Undani.Signature.Core.Resource
             }
         }
 
-        public bool SetActivityInstanceDocumentSigned(Guid activityInstanceRefId, string key, ActivityInstanceDocumentSigned elementInstanceDocumentSigned)
+        public bool SetActivityInstanceDocumentsSigned(Guid activityInstanceRefId, string key, List<ActivityInstanceDocumentSigned> activityInstanceDocumentsSigned)
         {
+            string url = Configuration["ApiTracking"] + "/Execution/ActivityInstance/SetDocumentSigned?elementInstanceRefId=" + activityInstanceRefId.ToString() + "&key=" + key;
+
             using (var client = new HttpClient())
             {
                 client.DefaultRequestHeaders.Add("Authorization", User.Token);
+                
+                StringContent stringContent = new StringContent(JsonConvert.SerializeObject(activityInstanceDocumentsSigned), Encoding.UTF8, "application/json");
 
-                string url = Configuration["ApiTracking"] + "/Execution/ActivityInstance/SetDocumentSigned?elementInstanceRefId=" + activityInstanceRefId.ToString() + "&key=" + key + "&documentSigned=" + JsonConvert.SerializeObject(elementInstanceDocumentSigned);
-
-                HttpResponseMessage httpResponseMessage = client.GetAsync(url).Result;
+                HttpResponseMessage httpResponseMessage = client.PostAsync(url, stringContent).Result;
 
                 if (httpResponseMessage.StatusCode != HttpStatusCode.OK)
-                    throw new Exception("There was an error when trying to set the document signed");
-
+                    throw new Exception("There was an error when trying to consume the resource apitemplate");
+                
                 return true;
             }
         }

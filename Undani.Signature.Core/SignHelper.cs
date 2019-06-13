@@ -21,7 +21,7 @@ namespace Undani.Signature.Core
     {
         public SignHelper(IConfiguration configuration, User user, Guid environmentId, byte[] publicKey) : base(configuration, user, environmentId, publicKey) { }
         
-        public List<SignResult> Start(Guid elementInstanceRefId)
+        public List<SignResult> Start(Guid elementInstanceRefId, List<string> templates)
         {
             ActivityInstanceSignature activityInstanceSignature = new TrackingCall(Configuration, User).GetActivityInstanceSignature(elementInstanceRefId);
 
@@ -56,14 +56,16 @@ namespace Undani.Signature.Core
             List<SignResult> signResults = new List<SignResult>();
             foreach (ElementSignature elementSignature in activityInstanceSignature.ElementsSignatures)
             {
-                switch (elementSignature.ElementSignatureTypeId)
-                {
-                    case 1:
-                        signResults.Add(new SignResult() { Key = elementSignature.Key, Template = elementSignature.Template, Type = elementSignature.ElementSignatureTypeId, Content = SetContentText(elementInstanceRefId, activityInstanceSignature.FormInstanceId, oJson, elementSignature) });
-                        break;
-                    case 2:
-                        signResults.Add(new SignResult() { Key = elementSignature.Key, Template = elementSignature.Template, Type = elementSignature.ElementSignatureTypeId, Content = SetContentPDF(elementInstanceRefId, activityInstanceSignature.FormInstanceId, oJson, elementSignature) });
-                        break;
+                if (templates.Contains(elementSignature.Template)) {
+                    switch (elementSignature.ElementSignatureTypeId)
+                    {
+                        case 1:
+                            signResults.Add(new SignResult() { Key = elementSignature.Key, Template = elementSignature.Template, Type = elementSignature.ElementSignatureTypeId, Content = SetContentText(elementInstanceRefId, activityInstanceSignature.FormInstanceId, oJson, elementSignature) });
+                            break;
+                        case 2:
+                            signResults.Add(new SignResult() { Key = elementSignature.Key, Template = elementSignature.Template, Type = elementSignature.ElementSignatureTypeId, Content = SetContentPDF(elementInstanceRefId, activityInstanceSignature.FormInstanceId, oJson, elementSignature) });
+                            break;
+                    }
                 }
             }
 
@@ -148,7 +150,7 @@ namespace Undani.Signature.Core
                     cmd.Parameters.Add(new SqlParameter("@SystemName", SqlDbType.UniqueIdentifier) { Value = systemName });
                     cmd.Parameters.Add(new SqlParameter("@OriginalName", SqlDbType.VarChar, 250) { Value = elementSignature.OriginalName });
                     cmd.Parameters.Add(new SqlParameter("@Extension", SqlDbType.VarChar, 5) { Value = "PDF" });
-                    cmd.Parameters.Add(new SqlParameter("@Content", SqlDbType.VarChar, -1) { Value = content });
+                    cmd.Parameters.Add(new SqlParameter("@Content", SqlDbType.VarChar, -1) { Value = content, Direction = ParameterDirection.InputOutput });
                     cmd.Parameters.Add(new SqlParameter("@Created", SqlDbType.DateTime) { Value = DateTimeNow });
 
                     cmd.ExecuteNonQuery();
@@ -165,7 +167,7 @@ namespace Undani.Signature.Core
         {
             Document document = GetDocument(elementInstanceRefId, key);
 
-            bool valid = false;
+            bool valid = true;
             if (ValidateSeal(document.Content, digitalSignature))
             {
                 using (SqlConnection cn = new SqlConnection(Configuration["CnDbSignature"]))
@@ -199,12 +201,16 @@ namespace Undani.Signature.Core
                                 });
                             }
 
-                            string xml = new Xml<DocumentSigned>().Serialize(documentSigned);
+
+                            if (!template.Contains("NoApply"))
+                            {
+                                string xml = new Xml<DocumentSigned>().Serialize(documentSigned);
+                                List<ActivityInstanceDocumentSigned> activityInstanceDocumentsSigned = new TemplateCall(Configuration, User).SignatureGraphicRepresentation(document.SystemName, document.OriginalName, document.EnvironmentId, template, xml);
+                                valid = new TrackingCall(Configuration, User).SetActivityInstanceDocumentsSigned(elementInstanceRefId, key, activityInstanceDocumentsSigned);
+                            }
+                            else
+                                valid = true;
                             
-                            dynamic templateResponse = new TemplateCall(Configuration, User).SignatureGraphicRepresentation(document.SystemName, document.OriginalName, document.EnvironmentId, template, xml);
-
-                            valid = new TrackingCall(Configuration, User).SetActivityInstanceDocumentSigned(elementInstanceRefId, key, new ActivityInstanceDocumentSigned());
-
                         }
                     }
                 }
@@ -261,7 +267,11 @@ namespace Undani.Signature.Core
 
                         cmd.ExecuteNonQuery();
 
-                        valid = new TrackingCall(Configuration, User).SetActivityInstanceDocumentSigned(elementInstanceRefId, key, new ActivityInstanceDocumentSigned());
+                        List<ActivityInstanceDocumentSigned> activityInstanceDocumentsSigned = new List<ActivityInstanceDocumentSigned>();
+
+                        activityInstanceDocumentsSigned.Add(new ActivityInstanceDocumentSigned() { SystemName = document.SystemName.ToString() + ".pdf", OriginalName = document.OriginalName, HashCode = "" });
+
+                        valid = new TrackingCall(Configuration, User).SetActivityInstanceDocumentsSigned(elementInstanceRefId, key, activityInstanceDocumentsSigned);
                     }
                 }
             }

@@ -138,7 +138,7 @@
     <script type="text/javascript">
         $(document).ready(function () {
 
-            var formSignature = $('#form-signature').uFormSignature({
+            var formSignature = $('#form-signature').uSignature({
                 host: "@configuration["ApiSignature"]",
                 publicKey: 'publicKey',
                 privateKey: 'privateKey',
@@ -147,7 +147,7 @@
 
             $('#sign').click(function (e) {
                 $('#sign').attr('disabled', true);
-                formSignature.Sign("C6960F33-BC0A-4763-B32A-D511235C9754");
+                formSignature.Sign("C6960F33-BC0A-4763-B32A-D511235C9754", ["CartaAceptacion","formSigned"]);
             });
 
             $(formSignature).on("starting", function (event) {
@@ -155,7 +155,7 @@
             });
 
             $(formSignature).on("error", function (event, errorThrown) {
-                $('#sign').text('Firmar')
+                $('#sign').text('Firmar');
                 $('#sign').attr('disabled', false);
                 alert(errorThrown);
             });

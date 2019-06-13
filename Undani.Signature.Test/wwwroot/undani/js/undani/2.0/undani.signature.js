@@ -30,7 +30,7 @@
         return s;
     }
 
-    $.fn.uFormSignature = function (settings) {
+    $.fn.uSignature = function (settings) {
         var signature = this;
         var token = "";
         var signSuccess = {};
@@ -38,7 +38,7 @@
 
         signature = $.extend(this,
             {
-                Sign: function (elementInstanceRefId) {
+                Sign: function (elementInstanceRefId, templates) {
                     var isRequired = true;
 
                     if (typeof elementInstanceRefId === "undefined" || elementInstanceRefId === "")
@@ -55,20 +55,18 @@
 
                     if (isRequired) {
 
-                        token = $("#token").val();
-
                         if (token !== "") {
-                            SignStart(elementInstanceRefId);
+                            SignStart(elementInstanceRefId, templates);
                         } else {
                             $.ajax({
                                 cache: false,
-                                url: "/Accoun/GetToken",
+                                url: "/Account/GetToken",
                                 dataType: "json",
                                 timeout: 1280000
                             })
                                 .done(function (result) {
                                     token = result.token;
-                                    SignStart(elementInstanceRefId);
+                                    SignStart(elementInstanceRefId, templates);
                                 })
                                 .fail(function (jqXHR, textStatus, errorThrown) {
                                     signature.trigger("error", settings.loginFail);
@@ -83,13 +81,14 @@
 
             });
 
-        function SignStart(elementInstanceRefId) {
+        function SignStart(elementInstanceRefId, templates) {
             var formData = new FormData();
             var publicKey = $("#" + settings.publicKey)[0].files[0];
             var privateKey = $("#" + settings.privateKey)[0].files[0];
             var password = $("#" + settings.password).val();
 
             formData.append("elementInstanceRefId", elementInstanceRefId);
+            formData.append("templates", templates);
             formData.append("publicKey", publicKey);
 
             signature.trigger("starting");
@@ -117,6 +116,7 @@
                                     SignTextEnd(publicKey, privateKey, password, elementInstanceRefId, signResults[j].content, signResults[j].key, signResults[j].template);
                                     break;
                                 case 2:
+                                    SignPDFEnd(publicKey, privateKey, password, elementInstanceRefId, signResults[j].content, signResults[j].key, signResults[j].template);
                                     break;
                             }
                         }

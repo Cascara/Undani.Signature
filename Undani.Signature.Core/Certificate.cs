@@ -82,7 +82,15 @@ namespace Undani.Signature.Core
             get {
                 if (_rfc.Contains("/"))
                 {
-                    return _rfc.Substring(_rfc.IndexOf("/") + 1).Trim().ToUpper();
+                    if (_rfc == "AAA010101AAA / HEGT7610034S2")
+                    {
+                        return _rfc.Substring(_rfc.IndexOf("/") + 1).Trim().ToUpper();
+                    }
+                    else
+                    {
+                        return _rfc.Substring(0, _rfc.IndexOf("/")-1).Trim().ToUpper();
+                    }
+                    
                 }
                 else
                     return _rfc.ToUpper();
@@ -288,7 +296,7 @@ namespace Undani.Signature.Core
 
             var _Identity = new ClaimsIdentity(claims, "Basic");
 
-            return new User() { Id = Guid.Parse(userAnonymous.NameIdentifier), Name = userAnonymous.Name, Token = JWToken.Token(_Identity) };
+            return new User() { Id = Guid.Parse(userAnonymous.NameIdentifier), Name = userAnonymous.Name, Token = "Bearer " + JWToken.Token(_Identity) };
 
         }
 

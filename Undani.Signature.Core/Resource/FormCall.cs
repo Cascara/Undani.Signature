@@ -22,7 +22,7 @@ namespace Undani.Signature.Core.Resource
             string json;
             using (var client = new HttpClient())
             {
-                client.DefaultRequestHeaders.Add("Authorization", "Bearer " + User.Token);
+                client.DefaultRequestHeaders.Add("Authorization", User.Token);
 
                 HttpResponseMessage response = client.GetAsync(url).Result;
 
@@ -41,7 +41,7 @@ namespace Undani.Signature.Core.Resource
 
             using (var client = new HttpClient())
             {
-                client.DefaultRequestHeaders.Add("Authorization", "Bearer " + User.Token);
+                client.DefaultRequestHeaders.Add("Authorization", User.Token);
 
                 dynamic formInstanceSign = new { Instance = formInstanceId, Sign = xml };
 

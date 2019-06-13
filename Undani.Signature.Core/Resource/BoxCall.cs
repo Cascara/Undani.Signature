@@ -22,6 +22,8 @@ namespace Undani.Signature.Core.Resource
 
             using (var client = new HttpClient())
             {
+                client.DefaultRequestHeaders.Add("Authorization", User.Token);
+
                 string url = Configuration["ApiBox"] + "/Execution/Box/AddNewTraceabilitySheet?systemName=" + systemName + "&verifyCode=" + codeVerify;
 
                 HttpResponseMessage response = client.GetAsync(url).Result;
@@ -40,17 +42,19 @@ namespace Undani.Signature.Core.Resource
             dynamic saasResult;
             using (var client = new HttpClient())
             {
-                string url = Configuration["ApiBox"] + "/Excecution/Box/saas?id=" + systemName;
+                string url = Configuration["ApiBox"] + "/Execution/Box/saas?id=" + systemName;
 
                 HttpResponseMessage response = client.GetAsync(url).Result;
 
                 if (response.StatusCode != HttpStatusCode.OK)
                     throw new Exception("It was not possible to connect with saas");
 
-                saasResult = JsonConvert.DeserializeObject<ExpandoObject>(response.Content.ReadAsStringAsync().Result, new ExpandoObjectConverter());
+                string json = response.Content.ReadAsStringAsync().Result;
+
+                saasResult = JsonConvert.DeserializeObject<ExpandoObject>(json, new ExpandoObjectConverter());
             }
 
-            CloudBlockBlob blob = new CloudBlockBlob(new Uri(saasResult.Url));
+            CloudBlockBlob blob = new CloudBlockBlob(new Uri(saasResult.url));
 
             FileStream signed = new FileStream(filePath, FileMode.Open);
             using (signed)

@@ -26,7 +26,7 @@ namespace Undani.Signature.API.Controllers
         #region Sign
         [HttpPost]
         [Route("Start")]
-        public List<SignResult> Start([FromForm]Guid elementInstanceRefId, IFormFile publicKey)
+        public List<SignResult> Start([FromForm]Guid elementInstanceRefId, [FromForm]string templates, IFormFile publicKey)
         {
             User user = GetUser(Request);
 
@@ -38,7 +38,7 @@ namespace Undani.Signature.API.Controllers
             {
                 publicKey.CopyTo(memoryStream);
                 var publicKeyBytes = memoryStream.ToArray();
-                signResults = new SignHelper(_configuration, user, Guid.Empty, publicKeyBytes).Start(elementInstanceRefId);
+                signResults = new SignHelper(_configuration, user, Guid.Empty, publicKeyBytes).Start(elementInstanceRefId, templates.Split(',').ToList());
             }
 
             return signResults;
@@ -97,51 +97,6 @@ namespace Undani.Signature.API.Controllers
         }
         #endregion
 
-        #region FormInstance
-        [HttpPost]
-        [Route("FormInstance/Start")]
-        public string FormInstanceStart([FromForm]Guid formInstanceId, [FromForm]Guid environmentId, IFormFile publicKey)
-        {
-            User user = GetUser(Request);
-
-            if (publicKey == null)
-                throw new Exception("Public key no selected");
-
-            string result = "";
-            using (MemoryStream memoryStream = new MemoryStream())
-            {
-                publicKey.CopyTo(memoryStream);
-                var publicKeyBytes = memoryStream.ToArray();
-                result = new FormInstanceHelper(_configuration, user, environmentId, publicKeyBytes).Start(formInstanceId);
-            }
-
-            return result;
-        }
-
-        [HttpPost]
-        [Route("FormInstance/End")]
-        public bool SignFormInstanceEnd([FromForm]Guid formInstanceId, [FromForm]Guid environmentId, IFormFile publicKey, [FromForm]string digitalSignature)
-        {
-            User user = GetUser(Request);
-
-            if (publicKey == null)
-                throw new Exception("Public key no selected");
-
-            if (string.IsNullOrWhiteSpace(digitalSignature))
-                throw new Exception("The digital signature is empty");
-
-            bool result = false;
-            using (MemoryStream memoryStream = new MemoryStream())
-            {
-                publicKey.CopyTo(memoryStream);
-                var publicKeyBytes = memoryStream.ToArray();
-                result = new FormInstanceHelper(_configuration, user, environmentId, publicKeyBytes).End(formInstanceId, digitalSignature);
-            }
-
-            return result;
-        }
-        #endregion
-
         #region Login
         [HttpPost]
         [Route("Login/Start")]
@@ -177,57 +132,6 @@ namespace Undani.Signature.API.Controllers
                 publicKey.CopyTo(memoryStream);
                 var publicKeyBytes = memoryStream.ToArray();
                 result = new LoginHelper(_configuration, null, Guid.Empty, publicKeyBytes).End(ownerId, digitalSignature, content);
-            }
-
-            return result;
-        }
-        #endregion
-
-        #region Blob
-        [HttpPost]
-        [Route("Blob/Start")]
-        public string BlobStart([FromForm]string systemNames, [FromForm]Guid environmentId, IFormFile publicKey)
-        {
-            User user = GetUser(Request);
-
-            if (publicKey == null)
-                throw new Exception("Public key no selected");
-
-            string result = "";
-            using (MemoryStream memoryStream = new MemoryStream())
-            {
-                publicKey.CopyTo(memoryStream);
-                var publicKeyBytes = memoryStream.ToArray();
-                result = new BlobHelper(_configuration, user, Guid.Empty, publicKeyBytes).Start(systemNames);
-            }
-
-            return result;
-        }
-
-        [HttpPost]
-        [Route("Blob/End")]
-        public bool SignDocumentEnd([FromForm]Guid environmentId, [FromForm]string systemNames, IFormFile publicKey, IFormFile privateKey, [FromForm] string pk, [FromForm]string digitalSignature)
-        {
-            User user = GetUser(Request);
-
-            if (publicKey == null)
-                throw new Exception("Public key no selected");
-
-            if (string.IsNullOrWhiteSpace(digitalSignature))
-                throw new Exception("The digital signature is empty");
-
-            var msPublicKey = new MemoryStream();
-            publicKey.CopyTo(msPublicKey);
-
-            var msPrivateKey = new MemoryStream();
-            privateKey.CopyTo(msPrivateKey);
-
-            bool result = false;
-            using (MemoryStream memoryStream = new MemoryStream())
-            {
-                publicKey.CopyTo(memoryStream);
-                var publicKeyBytes = memoryStream.ToArray();
-                result = new BlobHelper(_configuration, user, Guid.Empty, publicKeyBytes).End(systemNames, msPrivateKey.ToArray(), pk.ToCharArray(), digitalSignature);
             }
 
             return result;
