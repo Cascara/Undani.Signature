@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Microsoft.Extensions.Configuration;
+using System;
 using System.Net;
 using System.Net.Http;
 using System.Text;
-using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json;
 using Undani.Signature.Core.Infra;
 
 namespace Undani.Signature.Core.Resource
@@ -32,7 +30,7 @@ namespace Undani.Signature.Core.Resource
                 response = client.PostAsync(url, contentJson).Result;
 
                 if (response.StatusCode != HttpStatusCode.OK)
-                    throw new Exception("It was not possible to create de user");
+                    throw new Exception("S904");
 
                 _UserIdentity _userIdentity = Newtonsoft.Json.JsonConvert.DeserializeObject<_UserIdentity>(response.Content.ReadAsStringAsync().Result);
                 _userIdentity.OwnerId = ownerId;

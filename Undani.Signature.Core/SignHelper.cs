@@ -21,7 +21,7 @@ namespace Undani.Signature.Core
     {
         public SignHelper(IConfiguration configuration, User user, Guid environmentId, byte[] publicKey) : base(configuration, user, environmentId, publicKey) { }
         
-        public List<SignResult> Start(Guid elementInstanceRefId, List<string> templates)
+        public List<ContentSigned> Start(Guid procedureInstanceRefId, Guid elementInstanceRefId, List<string> templates)
         {
             ActivityInstanceSignature activityInstanceSignature = new TrackingCall(Configuration, User).GetActivityInstanceSignature(elementInstanceRefId);
 
@@ -37,33 +37,17 @@ namespace Undani.Signature.Core
             else
                 ValidateSignatory();
 
-            using (SqlConnection cn = new SqlConnection(Configuration["CnDbSignature"]))
-            {
-                cn.Open();
-
-                using (SqlCommand cmd = new SqlCommand("usp_Create_ElementInstance", cn))
-                {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.Add(new SqlParameter("@ElementInstanceRefId", SqlDbType.UniqueIdentifier) { Value = activityInstanceSignature.RefId });
-                    cmd.Parameters.Add(new SqlParameter("@FormInstanceId", SqlDbType.UniqueIdentifier) { Value = activityInstanceSignature.FormInstanceId });
-                    cmd.Parameters.Add(new SqlParameter("@EnvironmentId", SqlDbType.UniqueIdentifier) { Value = activityInstanceSignature.EnvironmentId });
-
-                    cmd.ExecuteNonQuery();
-                }
-
-            }
-
-            List<SignResult> signResults = new List<SignResult>();
+            List<ContentSigned> signResults = new List<ContentSigned>();
             foreach (ElementSignature elementSignature in activityInstanceSignature.ElementsSignatures)
             {
                 if (templates.Contains(elementSignature.Template)) {
                     switch (elementSignature.ElementSignatureTypeId)
                     {
                         case 1:
-                            signResults.Add(new SignResult() { Key = elementSignature.Key, Template = elementSignature.Template, Type = elementSignature.ElementSignatureTypeId, Content = SetContentText(elementInstanceRefId, activityInstanceSignature.FormInstanceId, oJson, elementSignature) });
+                            signResults.Add(new ContentSigned() { Key = elementSignature.Key, Template = elementSignature.Template, Type = elementSignature.ElementSignatureTypeId, Content = SetContentText(procedureInstanceRefId, activityInstanceSignature.EnvironmentId, activityInstanceSignature.FormInstanceId, oJson, elementSignature) });
                             break;
                         case 2:
-                            signResults.Add(new SignResult() { Key = elementSignature.Key, Template = elementSignature.Template, Type = elementSignature.ElementSignatureTypeId, Content = SetContentPDF(elementInstanceRefId, activityInstanceSignature.FormInstanceId, oJson, elementSignature) });
+                            signResults.Add(new ContentSigned() { Key = elementSignature.Key, Template = elementSignature.Template, Type = elementSignature.ElementSignatureTypeId, Content = SetContentPDF(procedureInstanceRefId, activityInstanceSignature.EnvironmentId, activityInstanceSignature.FormInstanceId, oJson, elementSignature) });
                             break;
                     }
                 }
@@ -72,28 +56,32 @@ namespace Undani.Signature.Core
             return signResults;
         }
 
-        private string SetContentText(Guid elementInstanceRefId, Guid formInstanceId, JObject oJson, ElementSignature elementSignature)
+        private string SetContentText(Guid procedureInstanceRefId, Guid environmentId, Guid formInstanceId, JObject oJson, ElementSignature elementSignature)
         {
-            JToken jToken;
-            string content = "";            
+            string content = "";
 
-            if (elementSignature.JsonPaths.Count == 1 && elementSignature.JsonPaths[0] == "/")
+            if (elementSignature.Create)
             {
-                jToken = oJson.SelectToken("Integration");
+                JToken jToken;
 
-                content = "||Formulario:" + formInstanceId.ToString() + "|Firmado:" + DateTimeNow.ToString("dd/MM/yyyy hh:mm:ss") + "|Contenido:" + JsonConvert.SerializeObject(jToken) + "||";
-            }
-            else
-            {
-                
-                foreach (string jsonPath in elementSignature.JsonPaths)
+                if (elementSignature.JsonPaths.Count == 1 && elementSignature.JsonPaths[0] == "/")
                 {
-                    jToken = oJson.SelectToken(jsonPath);
+                    jToken = oJson.SelectToken("Integration");
 
-                    elementSignature.Content = elementSignature.Content.Replace("[" + jsonPath + "]", (string)jToken);
+                    content = "||Formulario:" + formInstanceId.ToString() + "|Firmado:" + DateTimeNow.ToString("dd/MM/yyyy hh:mm:ss") + "|Contenido:" + JsonConvert.SerializeObject(jToken) + "||";
                 }
+                else
+                {
 
-                content = "||Formulario:" + formInstanceId.ToString() + "|Firmado:" + DateTimeNow.ToString("dd/MM/yyyy hh:mm:ss") + "|Contenido:" + elementSignature.Content + "||";
+                    foreach (string jsonPath in elementSignature.JsonPaths)
+                    {
+                        jToken = oJson.SelectToken(jsonPath);
+
+                        elementSignature.Content = elementSignature.Content.Replace("[" + jsonPath + "]", (string)jToken);
+                    }
+
+                    content = "||Formulario:" + formInstanceId.ToString() + "|Firmado:" + DateTimeNow.ToString("dd/MM/yyyy hh:mm:ss") + "|Contenido:" + elementSignature.Content + "||";
+                }
             }
 
             using (SqlConnection cn = new SqlConnection(Configuration["CnDbSignature"]))
@@ -103,9 +91,10 @@ namespace Undani.Signature.Core
                 using (SqlCommand cmd = new SqlCommand("usp_Set_Document", cn))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.Add(new SqlParameter("@ElementInstanceRefId", SqlDbType.UniqueIdentifier) { Value = elementInstanceRefId });
+                    cmd.Parameters.Add(new SqlParameter("@ProcedureInstanceRefId", SqlDbType.UniqueIdentifier) { Value = procedureInstanceRefId });
                     cmd.Parameters.Add(new SqlParameter("@Key", SqlDbType.VarChar, 50) { Value = elementSignature.Key });
                     cmd.Parameters.Add(new SqlParameter("@FormInstanceId", SqlDbType.UniqueIdentifier) { Value = formInstanceId });
+                    cmd.Parameters.Add(new SqlParameter("@EnvironmentId", SqlDbType.UniqueIdentifier) { Value = environmentId });
                     cmd.Parameters.Add(new SqlParameter("@SystemName", SqlDbType.UniqueIdentifier) { Value = Guid.NewGuid() });
                     cmd.Parameters.Add(new SqlParameter("@OriginalName", SqlDbType.VarChar, 250) { Value = elementSignature.OriginalName });
                     cmd.Parameters.Add(new SqlParameter("@Extension", SqlDbType.VarChar, 5) { Value = "" });
@@ -122,20 +111,25 @@ namespace Undani.Signature.Core
             return Convert.ToBase64String(GetHash(content));
         }
 
-        private string SetContentPDF(Guid elementInstanceRefId, Guid formInstanceId, JObject oJson, ElementSignature elementSignature)
+        private string SetContentPDF(Guid procedureInstanceRefId, Guid environmentId, Guid formInstanceId, JObject oJson, ElementSignature elementSignature)
         {
-            JToken jToken;
             string content = "";
+            Guid systemName = Guid.Empty;
 
-            jToken = oJson.SelectToken(elementSignature.JsonPaths[0]);
+            if (elementSignature.Create)
+            {
+                JToken jToken;
 
-            content = "||Formulario:" + formInstanceId.ToString() + "|Firmado:" + DateTimeNow.ToString("dd/MM/yyyy hh:mm:ss") + "|Documento:" + JsonConvert.SerializeObject(jToken) + "||";
+                jToken = oJson.SelectToken(elementSignature.JsonPaths[0]);
 
-            jToken = oJson.SelectToken(elementSignature.JsonPaths[0] + ".SystemName");
+                content = "||Formulario:" + formInstanceId.ToString() + "|Firmado:" + DateTimeNow.ToString("dd/MM/yyyy hh:mm:ss") + "|Documento:" + JsonConvert.SerializeObject(jToken) + "||";
 
-            string sSystemName = (string)jToken;
+                jToken = oJson.SelectToken(elementSignature.JsonPaths[0] + ".SystemName");
 
-            Guid systemName = Guid.Parse(sSystemName.Substring(0, sSystemName.IndexOf('.')));
+                string sSystemName = (string)jToken;
+
+                systemName = Guid.Parse(sSystemName.Substring(0, sSystemName.IndexOf('.')));
+            }
 
             using (SqlConnection cn = new SqlConnection(Configuration["CnDbSignature"]))
             {
@@ -144,9 +138,10 @@ namespace Undani.Signature.Core
                 using (SqlCommand cmd = new SqlCommand("usp_Set_Document", cn))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.Add(new SqlParameter("@ElementInstanceRefId", SqlDbType.UniqueIdentifier) { Value = elementInstanceRefId });
+                    cmd.Parameters.Add(new SqlParameter("@ProcedureInstanceRefId", SqlDbType.UniqueIdentifier) { Value = procedureInstanceRefId });
                     cmd.Parameters.Add(new SqlParameter("@Key", SqlDbType.VarChar, 50) { Value = elementSignature.Key });
                     cmd.Parameters.Add(new SqlParameter("@FormInstanceId", SqlDbType.UniqueIdentifier) { Value = formInstanceId });
+                    cmd.Parameters.Add(new SqlParameter("@EnvironmentId", SqlDbType.UniqueIdentifier) { Value = environmentId });
                     cmd.Parameters.Add(new SqlParameter("@SystemName", SqlDbType.UniqueIdentifier) { Value = systemName });
                     cmd.Parameters.Add(new SqlParameter("@OriginalName", SqlDbType.VarChar, 250) { Value = elementSignature.OriginalName });
                     cmd.Parameters.Add(new SqlParameter("@Extension", SqlDbType.VarChar, 5) { Value = "PDF" });
@@ -163,11 +158,11 @@ namespace Undani.Signature.Core
             return Convert.ToBase64String(GetHash(content));
         }
 
-        public bool SetSignText(Guid elementInstanceRefId, string key, string template, string digitalSignature)
+        public bool SetSignText(Guid procedureInstanceRefId, Guid elementInstanceRefId, string key, string template, string digitalSignature)
         {
-            Document document = GetDocument(elementInstanceRefId, key);
+            Document document = GetDocument(procedureInstanceRefId, key);
 
-            bool valid = true;
+            bool valid = false;
             if (ValidateSeal(document.Content, digitalSignature))
             {
                 using (SqlConnection cn = new SqlConnection(Configuration["CnDbSignature"]))
@@ -176,13 +171,14 @@ namespace Undani.Signature.Core
                     using (SqlCommand cmd = new SqlCommand("usp_Set_Sign", cn))
                     {
                         cmd.CommandType = CommandType.StoredProcedure;
-                        cmd.Parameters.Add(new SqlParameter("@ElementInstanceRefId", SqlDbType.UniqueIdentifier) { Value = elementInstanceRefId });
+                        cmd.Parameters.Add(new SqlParameter("@ProcedureInstanceRefId", SqlDbType.UniqueIdentifier) { Value = procedureInstanceRefId });
                         cmd.Parameters.Add(new SqlParameter("@Key", SqlDbType.VarChar, 50) { Value = key });
                         cmd.Parameters.Add(new SqlParameter("@RFC", SqlDbType.VarChar, 13) { Value = RFC });
                         cmd.Parameters.Add(new SqlParameter("@SerialNumber", SqlDbType.VarChar, 100) { Value = SerialNumber });
                         cmd.Parameters.Add(new SqlParameter("@Name", SqlDbType.VarChar, 100) { Value = Name });
                         cmd.Parameters.Add(new SqlParameter("@CURP", SqlDbType.VarChar, 18) { Value = CURP });
                         cmd.Parameters.Add(new SqlParameter("@DigitalSignature", SqlDbType.VarChar, 1000) { Value = digitalSignature });
+                        cmd.Parameters.Add(new SqlParameter("@ElementInstanceRefId", SqlDbType.UniqueIdentifier) { Value = elementInstanceRefId });
                         cmd.Parameters.Add(new SqlParameter("@Date", SqlDbType.DateTime) { Value = DateTimeNow });
 
                         DocumentSigned documentSigned = new DocumentSigned() { Id = document.FormInstanceId, EnvironmentId = document.EnvironmentId, ContentSigned = document.Content };
@@ -215,13 +211,17 @@ namespace Undani.Signature.Core
                     }
                 }
             }
+            else
+            {
+                throw new Exception("S510");
+            }
 
             return valid;
         }
 
-        public bool SetSignPDF(Guid elementInstanceRefId, string key, string template, byte[] privateKeyBytes, char[] password, string digitalSignature)
+        public bool SetSignPDF(Guid procedureInstanceRefId, Guid elementInstanceRefId, string key, string template, byte[] privateKeyBytes, char[] password, string digitalSignature)
         {
-            Document document = GetDocument(elementInstanceRefId, key);
+            Document document = GetDocument(procedureInstanceRefId, key);
 
             bool valid = false;
             if (ValidateSeal(document.Content, digitalSignature))
@@ -256,13 +256,14 @@ namespace Undani.Signature.Core
                     using (SqlCommand cmd = new SqlCommand("usp_Set_Sign", cn))
                     {
                         cmd.CommandType = CommandType.StoredProcedure;
-                        cmd.Parameters.Add(new SqlParameter("@ElementInstanceRefId", SqlDbType.UniqueIdentifier) { Value = elementInstanceRefId });
+                        cmd.Parameters.Add(new SqlParameter("@ProcedureInstanceRefId", SqlDbType.UniqueIdentifier) { Value = procedureInstanceRefId });
                         cmd.Parameters.Add(new SqlParameter("@Key", SqlDbType.VarChar, 50) { Value = key });
                         cmd.Parameters.Add(new SqlParameter("@RFC", SqlDbType.VarChar, 13) { Value = RFC });
                         cmd.Parameters.Add(new SqlParameter("@SerialNumber", SqlDbType.VarChar, 100) { Value = SerialNumber });
                         cmd.Parameters.Add(new SqlParameter("@Name", SqlDbType.VarChar, 100) { Value = Name });
                         cmd.Parameters.Add(new SqlParameter("@CURP", SqlDbType.VarChar, 18) { Value = CURP });
                         cmd.Parameters.Add(new SqlParameter("@DigitalSignature", SqlDbType.VarChar, 1000) { Value = digitalSignature });
+                        cmd.Parameters.Add(new SqlParameter("@ElementInstanceRefId", SqlDbType.UniqueIdentifier) { Value = elementInstanceRefId });
                         cmd.Parameters.Add(new SqlParameter("@Date", SqlDbType.DateTime) { Value = DateTimeNow });
 
                         cmd.ExecuteNonQuery();
@@ -275,11 +276,15 @@ namespace Undani.Signature.Core
                     }
                 }
             }
+            else
+            {
+                throw new Exception("S510");
+            }
 
             return valid;
         }
         
-        private Document GetDocument(Guid elementInstanceRefId, string key)
+        private Document GetDocument(Guid procedureInstanceRefId, string key)
         {
             Document document = new Document();
             using (SqlConnection cn = new SqlConnection(Configuration["CnDbSignature"]))
@@ -289,7 +294,7 @@ namespace Undani.Signature.Core
                 using (SqlCommand cmd = new SqlCommand("usp_Get_Document", cn))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.Add(new SqlParameter("@ElementInstanceRefId", SqlDbType.UniqueIdentifier) { Value = elementInstanceRefId });
+                    cmd.Parameters.Add(new SqlParameter("@ProcedureInstanceRefId", SqlDbType.UniqueIdentifier) { Value = procedureInstanceRefId });
                     cmd.Parameters.Add(new SqlParameter("@Key", SqlDbType.VarChar, 50) { Value = key });
                     cmd.Parameters.Add(new SqlParameter("@FormInstanceId", SqlDbType.UniqueIdentifier) { Direction = ParameterDirection.Output });
                     cmd.Parameters.Add(new SqlParameter("@SystemName", SqlDbType.UniqueIdentifier) { Direction = ParameterDirection.Output });

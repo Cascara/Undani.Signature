@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Undani.Signature
 {
-    public class SignResult
+    public class ContentSigned
     {
         public string Key { get; set; }
         public string Template { get; set; }

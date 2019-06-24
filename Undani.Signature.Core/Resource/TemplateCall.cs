@@ -29,7 +29,7 @@ namespace Undani.Signature.Core.Resource
                 HttpResponseMessage httpResponseMessage = client.PostAsync(url, stringContent).Result;
 
                 if (httpResponseMessage.StatusCode != HttpStatusCode.OK)
-                    throw new Exception("There was an error when trying to consume the resource apitemplate");
+                    throw new Exception("S905");
 
                 string json = httpResponseMessage.Content.ReadAsStringAsync().Result;
 

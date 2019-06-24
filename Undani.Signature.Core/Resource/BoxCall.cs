@@ -29,7 +29,7 @@ namespace Undani.Signature.Core.Resource
                 HttpResponseMessage response = client.GetAsync(url).Result;
 
                 if (response.StatusCode != HttpStatusCode.OK)
-                    throw new Exception("It was not possible to add the traceability page in box");
+                    throw new Exception("5901");
 
                 result = response.Content.ReadAsStreamAsync().Result;
             }
@@ -47,7 +47,7 @@ namespace Undani.Signature.Core.Resource
                 HttpResponseMessage response = client.GetAsync(url).Result;
 
                 if (response.StatusCode != HttpStatusCode.OK)
-                    throw new Exception("It was not possible to connect with saas");
+                    throw new Exception("S902");
 
                 string json = response.Content.ReadAsStringAsync().Result;
 

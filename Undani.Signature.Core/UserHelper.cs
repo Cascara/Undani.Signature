@@ -48,7 +48,7 @@ namespace Undani.Signature.Core
             }
         }
 
-        public string GetPassword(string rfc, string content)
+        public string GetPassword(string userName, string content)
         {
             using (SqlConnection cn = new SqlConnection(Configuration["CnDbSignature"]))
             {
@@ -57,7 +57,7 @@ namespace Undani.Signature.Core
                 {
 
                     cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.Add(new SqlParameter("@RFC", SqlDbType.VarChar, 13) { Value = rfc });
+                    cmd.Parameters.Add(new SqlParameter("@UserName", SqlDbType.VarChar, 13) { Value = userName });
                     cmd.Parameters.Add(new SqlParameter("@Content", SqlDbType.VarChar, 2000) { Value = content });
                     cmd.Parameters.Add(new SqlParameter("@Password", SqlDbType.VarChar, 250) { Direction = ParameterDirection.Output });
 
@@ -68,7 +68,7 @@ namespace Undani.Signature.Core
             }
         }
 
-        public _UserLogin CreateUser(Guid ownerId, string rfc, string name, string content, string password)
+        public _UserLogin CreateUser(Guid ownerId, string rfc, string userName, string name, string content, string password)
         {
             _UserIdentity _userIdentity = new IdentityCall(Configuration, _user).CreateUser(ownerId, name, rfc, password);
 
@@ -82,17 +82,18 @@ namespace Undani.Signature.Core
                 {
 
                     cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.Add(new SqlParameter("@UserId", SqlDbType.UniqueIdentifier) { Value = _userIdentity.SubjectId });
+                    cmd.Parameters.Add(new SqlParameter("@UserName", SqlDbType.VarChar, 100) { Value = userName });
+                    cmd.Parameters.Add(new SqlParameter("@Name", SqlDbType.VarChar, 100) { Value = name });
                     cmd.Parameters.Add(new SqlParameter("@RFC", SqlDbType.VarChar, 13) { Value = rfc });
-                    cmd.Parameters.Add(new SqlParameter("@UserName", SqlDbType.VarChar, 100) { Value = name });
                     cmd.Parameters.Add(new SqlParameter("@Password", SqlDbType.VarChar, 250) { Value = password });
                     cmd.Parameters.Add(new SqlParameter("@Content", SqlDbType.VarChar, 2000) { Value = content });
-                    cmd.Parameters.Add(new SqlParameter("@UserId", SqlDbType.UniqueIdentifier) { Value = _userIdentity.SubjectId });
 
                     cmd.ExecuteNonQuery();
                 }
             }
 
-            return new _UserLogin() { UserName = rfc, Password = password };
+            return new _UserLogin() { UserName = userName, Password = password };
         }
     }
 }

@@ -29,7 +29,7 @@ namespace Undani.Signature.Core.Resource
                 HttpResponseMessage response = client.PostAsync(url, formContent).Result;
 
                 if (response.StatusCode != HttpStatusCode.OK)
-                    throw new Exception("It was not possible to add the traceability page in box");
+                    throw new Exception("S906-1");
             }
         }
 
@@ -79,7 +79,7 @@ namespace Undani.Signature.Core.Resource
                 HttpResponseMessage httpResponseMessage = client.PostAsync(url, stringContent).Result;
 
                 if (httpResponseMessage.StatusCode != HttpStatusCode.OK)
-                    throw new Exception("There was an error when trying to consume the resource apitemplate");
+                    throw new Exception("S906");
                 
                 return true;
             }

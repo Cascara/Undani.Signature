@@ -26,42 +26,58 @@ namespace Undani.Signature.API.Controllers
         #region Sign
         [HttpPost]
         [Route("Start")]
-        public List<SignResult> Start([FromForm]Guid elementInstanceRefId, [FromForm]string templates, IFormFile publicKey)
+        public Result Start([FromForm]Guid procedureInstanceRefId, [FromForm]Guid elementInstanceRefId, [FromForm]string templates, IFormFile publicKey)
         {
-            User user = GetUser(Request);
-
-            if (publicKey == null)
-                throw new Exception("Public key no selected");
-
-            List<SignResult> signResults = new List<SignResult>();
-            using (MemoryStream memoryStream = new MemoryStream())
+            Result result = new Result();
+            try
             {
-                publicKey.CopyTo(memoryStream);
-                var publicKeyBytes = memoryStream.ToArray();
-                signResults = new SignHelper(_configuration, user, Guid.Empty, publicKeyBytes).Start(elementInstanceRefId, templates.Split(',').ToList());
-            }
+                User user = GetUser(Request);
 
-            return signResults;
+                if (publicKey == null)
+                    throw new Exception("S501");
+
+                using (MemoryStream memoryStream = new MemoryStream())
+                {
+                    publicKey.CopyTo(memoryStream);
+                    var publicKeyBytes = memoryStream.ToArray();
+
+                    result.Value = new SignHelper(_configuration, user, Guid.Empty, publicKeyBytes).Start(procedureInstanceRefId, elementInstanceRefId, templates.Split(',').ToList());
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Error = ex.Message;
+            }          
+
+            return result;
         }
 
         [HttpPost]
         [Route("Text/End")]
-        public bool SetSignText([FromForm]Guid elementInstanceRefId, [FromForm] string key, [FromForm] string template, IFormFile publicKey, [FromForm]string digitalSignature)
+        public Result SetSignText([FromForm]Guid procedureInstanceRefId, [FromForm]Guid elementInstanceRefId, [FromForm] string key, [FromForm] string template, IFormFile publicKey, [FromForm]string digitalSignature)
         {
-            User user = GetUser(Request);
-
-            if (publicKey == null)
-                throw new Exception("Public key no selected");
-
-            if (string.IsNullOrWhiteSpace(digitalSignature))
-                throw new Exception("The digital signature is empty");
-
-            bool result = false;
-            using (MemoryStream memoryStream = new MemoryStream())
+            Result result = new Result();
+            try
             {
-                publicKey.CopyTo(memoryStream);
-                var publicKeyBytes = memoryStream.ToArray();
-                result = new SignHelper(_configuration, user, Guid.Empty, publicKeyBytes).SetSignText(elementInstanceRefId, key, template, digitalSignature);
+                User user = GetUser(Request);
+
+                if (publicKey == null)
+                    throw new Exception("S501");
+
+                if (string.IsNullOrWhiteSpace(digitalSignature))
+                    throw new Exception("S502");
+
+                using (MemoryStream memoryStream = new MemoryStream())
+                {
+                    publicKey.CopyTo(memoryStream);
+                    var publicKeyBytes = memoryStream.ToArray();
+                    result.Value = new SignHelper(_configuration, user, Guid.Empty, publicKeyBytes).SetSignText(procedureInstanceRefId, elementInstanceRefId, key, template, digitalSignature);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                result.Error = ex.Message;
             }
 
             return result;
@@ -69,28 +85,36 @@ namespace Undani.Signature.API.Controllers
 
         [HttpPost]
         [Route("PDF/End")]
-        public bool SetSignPDF([FromForm]Guid elementInstanceRefId, [FromForm] string key, [FromForm] string template, IFormFile publicKey, IFormFile privateKey, [FromForm] string pk, [FromForm]string digitalSignature)
+        public Result SetSignPDF([FromForm]Guid procedureInstanceRefId, [FromForm]Guid elementInstanceRefId, [FromForm] string key, [FromForm] string template, IFormFile publicKey, IFormFile privateKey, [FromForm] string pk, [FromForm]string digitalSignature)
         {
-            User user = GetUser(Request);
-
-            if (publicKey == null)
-                throw new Exception("Public key no selected");
-
-            if (string.IsNullOrWhiteSpace(digitalSignature))
-                throw new Exception("The digital signature is empty");
-
-            var msPublicKey = new MemoryStream();
-            publicKey.CopyTo(msPublicKey);
-
-            var msPrivateKey = new MemoryStream();
-            privateKey.CopyTo(msPrivateKey);
-
-            bool result = false;
-            using (MemoryStream memoryStream = new MemoryStream())
+            Result result = new Result();
+            try
             {
-                publicKey.CopyTo(memoryStream);
-                var publicKeyBytes = memoryStream.ToArray();
-                result = new SignHelper(_configuration, user, Guid.Empty, publicKeyBytes).SetSignPDF(elementInstanceRefId, key, template, msPrivateKey.ToArray(), pk.ToCharArray(), digitalSignature);
+                User user = GetUser(Request);
+
+                if (publicKey == null)
+                    throw new Exception("S501");
+
+                if (string.IsNullOrWhiteSpace(digitalSignature))
+                    throw new Exception("S502");
+
+                var msPublicKey = new MemoryStream();
+                publicKey.CopyTo(msPublicKey);
+
+                var msPrivateKey = new MemoryStream();
+                privateKey.CopyTo(msPrivateKey);
+
+                using (MemoryStream memoryStream = new MemoryStream())
+                {
+                    publicKey.CopyTo(memoryStream);
+                    var publicKeyBytes = memoryStream.ToArray();
+                    result.Value = new SignHelper(_configuration, user, Guid.Empty, publicKeyBytes).SetSignPDF(procedureInstanceRefId, elementInstanceRefId, key, template, msPrivateKey.ToArray(), pk.ToCharArray(), digitalSignature);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                result.Error = ex.Message;
             }
 
             return result;
@@ -103,7 +127,7 @@ namespace Undani.Signature.API.Controllers
         public string LoginStart(IFormFile publicKey)
         {
             if (publicKey == null)
-                throw new Exception("Public key no selected");
+                throw new Exception("S501");
 
             string result = "";
             using (MemoryStream memoryStream = new MemoryStream())
@@ -121,10 +145,10 @@ namespace Undani.Signature.API.Controllers
         public _UserLogin LoginEnd([FromForm]Guid ownerId, IFormFile publicKey, [FromForm]string digitalSignature, [FromForm]string content)
         {
             if (publicKey == null)
-                throw new Exception("Public key no selected");
+                throw new Exception("S501");
 
             if (string.IsNullOrWhiteSpace(digitalSignature))
-                throw new Exception("The digital signature is empty");
+                throw new Exception("S502");
 
             _UserLogin result;
             using (MemoryStream memoryStream = new MemoryStream())
@@ -144,7 +168,7 @@ namespace Undani.Signature.API.Controllers
             User user = new User();
             Payload payload = new Payload();
             if (!request.Headers.ContainsKey("Authorization"))
-                throw new Exception("The access is invalid");
+                throw new Exception("S503");
 
             var authHeader = request.Headers["Authorization"][0];
             if (authHeader.StartsWith("Bearer "))
@@ -156,14 +180,14 @@ namespace Undani.Signature.API.Controllers
                     payload = JWToken.TokenDecode(token);
                     user = new User() { Id = Guid.Parse(payload.UserId), Name = payload.UserName, Token = authHeader };
                 }
-                catch (Exception e)
+                catch (Exception ex)
                 {
-                    throw new Exception("The access is invalid");
+                    throw new Exception("S503");
                 }
             }
 
             if (user.Id == Guid.Empty)
-                throw new Exception("The access is invalid");
+                throw new Exception("S503");
             
             user = new UserHelper(_configuration, user).User;
 

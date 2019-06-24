@@ -29,7 +29,7 @@ namespace Undani.Signature.Core
                 {
                     password = GetCrc32(RFC + DateTimeNow.ToString("dd/MM/yyyy hh:mm:ss"));
 
-                    return userHelper.CreateUser(ownerId, RFC, Name, content, password);
+                    return userHelper.CreateUser(ownerId, RFC, RFC, Name, content, password);
                 }
                 else
                 {
@@ -37,7 +37,7 @@ namespace Undani.Signature.Core
                 }
             }
 
-            throw new Exception("The access is invalid");
+            throw new Exception("S503");
         }
     }
 }

@@ -27,7 +27,7 @@ namespace Undani.Signature.Core.Resource
                 HttpResponseMessage response = client.GetAsync(url).Result;
 
                 if (response.StatusCode != HttpStatusCode.OK)
-                    throw new Exception("There was an error when trying to consume the resource apiform");
+                    throw new Exception("S903");
 
                 json = response.Content.ReadAsStringAsync().Result;
             }            
@@ -50,7 +50,7 @@ namespace Undani.Signature.Core.Resource
                 HttpResponseMessage response = client.PostAsync(url, stringContent).Result;
 
                 if (response.StatusCode != HttpStatusCode.OK)
-                    throw new Exception("There was an error when trying to consume the resource apiform");
+                    throw new Exception("S903");
 
                 return bool.Parse(response.Content.ReadAsStringAsync().Result);
             }

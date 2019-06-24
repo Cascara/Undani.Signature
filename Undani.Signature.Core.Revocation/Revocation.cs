@@ -4,9 +4,9 @@ using System.Text;
 
 namespace Undani.Signature.Core.Revocation
 {
-    public partial class ValidationInvoke
+    public class Revocation
     {
-        public bool _61A2202A()
+        public bool Validate()
         {
             return true;
         }

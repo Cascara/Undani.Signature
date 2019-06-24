@@ -143,30 +143,30 @@ namespace Undani.Signature.Core
             }
 
             if (result.Count == 0)
-                throw new Exception("Certificate is wrong");
+                throw new Exception("S504");
 
 
             _rfc = result["OID.2.5.4.45"];
             if (RFC.Length != 13 && RFC.Length != 12)
-                throw new Exception("The rfc number is wrong");
+                throw new Exception("S505");
 
             if (RFC.Length == 13)
             {
                 _curp = result["SERIALNUMBER"];
                 if (CURP.Length != 18)
-                    throw new Exception("The curp number is wrong");
+                    throw new Exception("S506");
             }
 
             _name = result["O"];
             if (Name.Length == 0)
-                throw new Exception("The name is wrong");
+                throw new Exception("S507");
 
             _expirationDate = DateTime.Parse(X509PublicKey.GetExpirationDateString());
 
             _datetimeNow = GetDateTimeNow();
 
             if (ExpirationDate < DateTimeNow && RFC != "MARL8408036H4")
-                throw new Exception("The certificate has expired");
+                throw new Exception("S508");
 
             _serialNumber = GetSerialNumber();
 
@@ -305,12 +305,12 @@ namespace Undani.Signature.Core
             if (rfc != "")
             {
                 if (rfc.ToUpper() != RFC)
-                    throw new Exception("The signer is not correct");
+                    throw new Exception("S509");
             }
             else
             {
                 if (User.RFC != RFC)
-                    throw new Exception("The signer is not correct");
+                    throw new Exception("S509");
             }
         }
     }
