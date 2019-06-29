@@ -16,6 +16,10 @@
             "S508": "The certificate has expired.",
             "S509": "The signer is not correct.",
             "S510": "The digital signature is invalid.",
+            "S511": "The certificate chain does not comply with the policy.",
+            "S512": "Failed to obtain the JWT token.",
+            "S513": "The response of the OCSP service has not been signed with the OCSP certificate.",
+            "S514": "The response of the revocaion service was not successful.",
             "S901": "It was not possible to add the traceability page in box.",
             "S902": "It was not possible to connect with repository.",
             "S903": "There was an error when trying to consume form resources.",
@@ -56,7 +60,7 @@
         }
 
         s["getError"] = function (n) {
-            return n + ": " + settings.error[n.substring(0, 4)];
+            return this.error[n.substring(0, 4)] + " (" + n + ")";
         };
 
         return s;
@@ -66,11 +70,13 @@
         var signature = this;
         var token = "";
         var signSuccess = {};
+        var lastErrorNumber = "";
         settings = Settings(settings);
 
         signature = $.extend(this,
             {
                 Sign: function (procedureInstanceRefId, elementInstanceRefId, templates) {
+                    lastErrorNumber = "";
                     var isRequired = true;
 
                     if (typeof procedureInstanceRefId === "undefined" || procedureInstanceRefId === "")
@@ -104,17 +110,25 @@
                                     SignStart(procedureInstanceRefId, elementInstanceRefId, templates);
                                 })
                                 .fail(function (jqXHR, textStatus, errorThrown) {
-                                    signature.trigger("error", settings.loginFail);
+                                    RaiseError("S004");
                                 });
-                            }
+                        }
                         
 
                     }
                     else
-                        signature.trigger("error", settings.getError("S002"));
+                        RaiseError("S002");
                 }
 
             });
+
+        function RaiseError(errorNumber) {
+            if (errorNumber !== lastErrorNumber) {            
+                var errorThrown = settings.getError(errorNumber);
+                signature.trigger("error", errorThrown);
+                lastErrorNumber = errorNumber;
+            }
+        }
 
         function SignStart(procedureInstanceRefId, elementInstanceRefId, templates) {
             var formData = new FormData();
@@ -139,35 +153,35 @@
                 headers: { Authorization: token },
                 timeout: 1280000
             })
-                .done(function (result) {
-                    if (result.Error === "") {
-                        if (result.Value.length > 0) {
-                            for (var i = 0; i < result.Value.length; i++) {
-                                signSuccess[result.Value[i].key] = false;
+                .done(function (resultSignature) {
+                    if (resultSignature.error === "") {
+                        if (resultSignature.value.length > 0) {
+                            for (var i = 0; i < resultSignature.value.length; i++) {
+                                signSuccess[resultSignature.value[i].key] = false;
                             }
 
-                            for (var j = 0; j < result.Value.length; j++) {
-                                switch (result.Value[j].type) {
+                            for (var j = 0; j < resultSignature.value.length; j++) {
+                                switch (resultSignature.value[j].type) {
 
                                     case 1:
-                                        SignTextEnd(publicKey, privateKey, password, procedureInstanceRefId, elementInstanceRefId, result.Value[j].content, result.Value[j].key, result.Value[j].template);
+                                        SignTextEnd(publicKey, privateKey, password, procedureInstanceRefId, elementInstanceRefId, resultSignature.value[j].content, resultSignature.value[j].key, resultSignature.value[j].template);
                                         break;
                                     case 2:
-                                        SignPDFEnd(publicKey, privateKey, password, procedureInstanceRefId, elementInstanceRefId, result.Value[j].content, result.Value[j].key, result.Value[j].template);
+                                        SignPDFEnd(publicKey, privateKey, password, procedureInstanceRefId, elementInstanceRefId, resultSignature.value[j].content, resultSignature.value[j].key, resultSignature.value[j].template);
                                         break;
                                 }
                             }
                         }
                         else {
-                            signature.trigger("error", settings.getError("S003"));
+                            RaiseError("S003");
                         }
                     }
                     else {
-                        signature.trigger("error", settings.getError(result.Error));
+                        RaiseError(resultSignature.error);
                     }
                 })
                 .fail(function (jqXHR, textStatus, errorThrown) {
-                    signature.trigger("error", settings.loginFail);
+                    signature.trigger("error", errorThrown);
                 });
         }
 
@@ -175,7 +189,7 @@
             Signature.Crypto.SignAsync(privateKey, password, content, "sha256")
                 .done(function (result) {
                     if (result.error) {
-                        signature.trigger("error", settings.getError("S001"));
+                        RaiseError("S001");
                         return false;
                     }
                     
@@ -197,16 +211,16 @@
                         headers: { Authorization: token },
                         timeout: 1280000
                     })
-                        .done(function (result) {
-                            if (result.Error === "") {
-                                if (result.Value === true) {
+                        .done(function (resultSignature) {
+                            if (resultSignature.error === "") {
+                                if (resultSignature.value === true) {
                                     SignSuccess(key);
                                 } else {
-                                    signature.trigger("error", settings.getError("S004"));
+                                    RaiseError("S004");
                                 } 
                             }
                             else {
-                                signature.trigger("error", settings.getError(result.Error));
+                                RaiseError(resultSignature.error);
                             }
                                                        
                         })
@@ -215,7 +229,7 @@
                         });
                 })
                 .fail(function (result) {
-                    signature.trigger("error", settings.getError("S001"));
+                    RaiseError("S001");
                 });
         }
 
@@ -223,7 +237,7 @@
             Signature.Crypto.SignAsync(privateKey, password, content, "sha256")
                 .done(function (result) {
                     if (result.error) {
-                        signature.trigger("error", settings.getError("S001"));
+                        RaiseError("S001");
                         return false;
                     }
 
@@ -247,16 +261,16 @@
                         headers: { Authorization: token },
                         timeout: 1280000
                     })
-                        .done(function (result) {
-                            if (result.Error === "") {
-                                if (result.Value === true) {
+                        .done(function (resultSignature) {
+                            if (resultSignature.error === "") {
+                                if (resultSignature.value === true) {
                                     SignSuccess(key);
                                 } else {
-                                    signature.trigger("error", settings.getError("S004"));
+                                    RaiseError("S004");
                                 }
                             }
                             else {
-                                signature.trigger("error", settings.getError(result.Error));
+                                RaiseError(resultSignature.error);
                             }
                             
                         })
@@ -265,7 +279,7 @@
                         });
                 })
                 .fail(function (result) {
-                    signature.trigger("error", settings.getError("S001"));
+                    RaiseError("S001");
                 });
         }
 

@@ -1,18 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace Undani.Signature
 {
-    public class DocumentSigned
+    public class Document
     {
-        public DocumentSigned()
-        {
-            Signs = new List<Sign>();
-        }
-
-        public Guid Id { get; set; }
+        public Guid FormInstanceId { get; set; }
+        public Guid SystemName { get; set; }
+        public string OriginalName { get; set; }
+        public string Content { get; set; }
         public Guid EnvironmentId { get; set; }
-        public string ContentSigned { get; set; }
-        public List<Sign> Signs { get; set; }
+        public DateTime Created { get; set; }
     }
 }

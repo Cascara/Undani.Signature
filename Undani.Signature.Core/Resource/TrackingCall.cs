@@ -79,7 +79,7 @@ namespace Undani.Signature.Core.Resource
                 HttpResponseMessage httpResponseMessage = client.PostAsync(url, stringContent).Result;
 
                 if (httpResponseMessage.StatusCode != HttpStatusCode.OK)
-                    throw new Exception("S906");
+                    throw new Exception("S906-4");
                 
                 return true;
             }

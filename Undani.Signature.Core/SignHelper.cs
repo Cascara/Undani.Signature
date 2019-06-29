@@ -68,7 +68,7 @@ namespace Undani.Signature.Core
                 {
                     jToken = oJson.SelectToken("Integration");
 
-                    content = "||Formulario:" + formInstanceId.ToString() + "|Firmado:" + DateTimeNow.ToString("dd/MM/yyyy hh:mm:ss") + "|Contenido:" + JsonConvert.SerializeObject(jToken) + "||";
+                    content = "||Documento:" + formInstanceId.ToString() + "/" + environmentId.ToString() + "|Creado:" + DateTimeNow.ToString("dd/MM/yyyy hh:mm:ss") + "|Contenido:" + JsonConvert.SerializeObject(jToken) + "||";
                 }
                 else
                 {
@@ -80,7 +80,7 @@ namespace Undani.Signature.Core
                         elementSignature.Content = elementSignature.Content.Replace("[" + jsonPath + "]", (string)jToken);
                     }
 
-                    content = "||Formulario:" + formInstanceId.ToString() + "|Firmado:" + DateTimeNow.ToString("dd/MM/yyyy hh:mm:ss") + "|Contenido:" + elementSignature.Content + "||";
+                    content = "||Documento:" + formInstanceId.ToString() + "/" + environmentId.ToString() + "|Creado:" + DateTimeNow.ToString("dd/MM/yyyy hh:mm:ss") + "|Contenido:" + elementSignature.Content + "||";
                 }
             }
 
@@ -122,7 +122,7 @@ namespace Undani.Signature.Core
 
                 jToken = oJson.SelectToken(elementSignature.JsonPaths[0]);
 
-                content = "||Formulario:" + formInstanceId.ToString() + "|Firmado:" + DateTimeNow.ToString("dd/MM/yyyy hh:mm:ss") + "|Documento:" + JsonConvert.SerializeObject(jToken) + "||";
+                content = "||Documento:" + formInstanceId.ToString() + "/" + environmentId.ToString() + "|Creado:" + DateTimeNow.ToString("dd/MM/yyyy hh:mm:ss") + "|Documento:" + JsonConvert.SerializeObject(jToken) + "||";
 
                 jToken = oJson.SelectToken(elementSignature.JsonPaths[0] + ".SystemName");
 
@@ -181,7 +181,7 @@ namespace Undani.Signature.Core
                         cmd.Parameters.Add(new SqlParameter("@ElementInstanceRefId", SqlDbType.UniqueIdentifier) { Value = elementInstanceRefId });
                         cmd.Parameters.Add(new SqlParameter("@Date", SqlDbType.DateTime) { Value = DateTimeNow });
 
-                        DocumentSigned documentSigned = new DocumentSigned() { Id = document.FormInstanceId, EnvironmentId = document.EnvironmentId, ContentSigned = document.Content };
+                        DocumentSigned documentSigned = new DocumentSigned() { Id = document.FormInstanceId, EnvironmentId = document.EnvironmentId, ContentSigned = document.Content, Created = document.Created};
                         using (SqlDataReader reader = cmd.ExecuteReader())
                         {
                             while (reader.Read())
@@ -301,6 +301,7 @@ namespace Undani.Signature.Core
                     cmd.Parameters.Add(new SqlParameter("@OriginalName", SqlDbType.VarChar, 250) { Direction = ParameterDirection.Output });
                     cmd.Parameters.Add(new SqlParameter("@Content", SqlDbType.VarChar, -1) { Direction = ParameterDirection.Output });
                     cmd.Parameters.Add(new SqlParameter("@EnvironmentId", SqlDbType.UniqueIdentifier) { Direction = ParameterDirection.Output });
+                    cmd.Parameters.Add(new SqlParameter("@Created", SqlDbType.DateTime) { Direction = ParameterDirection.Output });
 
                     cmd.ExecuteNonQuery();
 
@@ -309,6 +310,7 @@ namespace Undani.Signature.Core
                     document.OriginalName = (string)cmd.Parameters["@OriginalName"].Value;
                     document.Content = (string)cmd.Parameters["@Content"].Value;
                     document.EnvironmentId = (Guid)cmd.Parameters["@EnvironmentId"].Value;
+                    document.Created = (DateTime)cmd.Parameters["@Created"].Value;
                 }
 
             }
