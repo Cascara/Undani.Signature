@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
@@ -11,21 +12,23 @@ using Org.BouncyCastle.Ocsp;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.X509;
 
-namespace Undani.Signature.Core.Revocation
+namespace Undani.Signature.Core
 {
     public class Revocation
     {
         private Uri _ocspUrl;
         private String _vaultBaseUrl;
-        private string _vaultBaseSecretName;
+        private string _ocspStoreName;
+        private string _issuerStoreName;
         private string _clientId;
         private string _clientSecret;
 
-        public Revocation(string ocspUrl, string vaultBaseUrl, string vaultBaseSecretName, string clientId, string clientSecret)
+        public Revocation(string ocspUrl, string vaultBaseUrl, string ocspStoreName, string issuerStoreName, string clientId, string clientSecret)
         {
             _ocspUrl = new Uri(ocspUrl);
             _vaultBaseUrl = vaultBaseUrl;
-            _vaultBaseSecretName = vaultBaseSecretName;
+            _ocspStoreName = ocspStoreName;
+            _issuerStoreName = issuerStoreName;
             _clientId = clientId;
             _clientSecret = clientSecret;
         }
@@ -34,37 +37,24 @@ namespace Undani.Signature.Core.Revocation
         {
             X509Certificate certificate = new X509CertificateParser().ReadCertificate(publicKey);
 
-            X509Certificate issuerCertificate = GetIssuerCertificate(certificate);
+            X509Certificate issuerCertificate = GetIssuerCertificate();
 
             X509Certificate ocspCertificate = GetOcspCertificate();
 
             return ValidateOCSP(ocspCertificate, certificate, issuerCertificate);
         }
 
-        private X509Certificate GetIssuerCertificate(X509Certificate certificate)
+        private X509Certificate GetIssuerCertificate()
         {
-            var x509Certificate2 = new System.Security.Cryptography.X509Certificates.X509Certificate2(certificate.CertificateStructure.GetEncoded());
-
-            var x509Chain = new System.Security.Cryptography.X509Certificates.X509Chain();
-
-            x509Chain.ChainPolicy.RevocationMode = System.Security.Cryptography.X509Certificates.X509RevocationMode.NoCheck;
-
-            List<X509Certificate> chain;
-
-            if (x509Chain.Build(x509Certificate2))
-            {
-                chain = x509Chain.ChainElements.Cast<System.Security.Cryptography.X509Certificates.X509ChainElement>().Select(c => new X509CertificateParser().ReadCertificate(c.Certificate.RawData)).ToList();
-
-                return chain.FirstOrDefault(c => c.SubjectDN.Equivalent(certificate.IssuerDN));
-            }
-            else
-            {
-                throw new Exception("S511");
-            }  
-            
+            return GetKeyVaultCertificate(_issuerStoreName);
         }
 
         private X509Certificate GetOcspCertificate()
+        {
+            return GetKeyVaultCertificate(_ocspStoreName);
+        }
+
+        private X509Certificate GetKeyVaultCertificate(string vaultStoreName)
         {
             var kv = new KeyVaultClient(async (authority, resource, scope) =>
             {
@@ -78,13 +68,13 @@ namespace Undani.Signature.Core.Revocation
                 return result.AccessToken;
             });
 
-            var certificateSecret = kv.GetSecretAsync(_vaultBaseUrl, _vaultBaseSecretName);
-
+            var certificateSecret = kv.GetSecretAsync(_vaultBaseUrl, vaultStoreName);
+            
             var privateKeyBytes = Convert.FromBase64String(certificateSecret.Result.Value);
 
-            X509Certificate ocspCertificate = new X509CertificateParser().ReadCertificate(privateKeyBytes);
+            X509Certificate certificate = new X509CertificateParser().ReadCertificate(privateKeyBytes);
 
-            return ocspCertificate;
+            return certificate;
         }
 
         private bool ValidateOCSP(X509Certificate ocspCertificate, X509Certificate certificate, X509Certificate issuerCertificate)
@@ -131,7 +121,7 @@ namespace Undani.Signature.Core.Revocation
             }
         }
 
-        private  OcspReq GenerateOcspRequest(X509Certificate issuer, BigInteger certificateSerialNumber)
+        private OcspReq GenerateOcspRequest(X509Certificate issuer, BigInteger certificateSerialNumber)
         {
             var ocspRequestGenerator = new Org.BouncyCastle.Ocsp.OcspReqGenerator();
 

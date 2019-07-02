@@ -10,9 +10,15 @@ namespace Undani.Signature.Core
 
         public string Start()
         {
-            string signNumber = "||SignNumber:" + GetCrc32(DateTimeNow.ToString("dd/MM/yyyy")) + SerialNumber + "||";
+            string content = "";
+            //if (ValidateRevocation())
+            //{
+                string signNumber = "||SignNumber:" + GetCrc32(DateTimeNow.ToString("dd/MM/yyyy")) + SerialNumber + "||";
 
-            return Convert.ToBase64String(GetHash(signNumber));
+                content = Convert.ToBase64String(GetHash(signNumber));
+            //}
+
+            return content;
         }
 
         public _UserLogin End(Guid ownerId, string digitalSignature, string content)

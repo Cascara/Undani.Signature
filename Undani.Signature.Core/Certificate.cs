@@ -217,8 +217,8 @@ namespace Undani.Signature.Core
 
         public bool ValidateRevocation()
         {
-            ///TODO: Hacer la validacion de forma asincrona
-            return true;
+            Revocation revocation = new Revocation(Configuration["DataOcspUri"], Configuration["ApiKeyVault"], Configuration["DataOcspStoreName"], Configuration["DataIssuerStoreName"], Configuration["DataOcspClientId"], Configuration["DataOcspClientSecret"]);
+            return revocation.Validate(_publicKey);
         }
 
         public byte[] GetHash(string text)

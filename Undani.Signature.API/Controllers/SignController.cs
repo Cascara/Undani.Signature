@@ -162,6 +162,28 @@ namespace Undani.Signature.API.Controllers
         }
         #endregion
 
+        #region OCSP
+        [HttpPost]
+        [Route("OCSP/Validate")]
+        public bool OCSPValidate(IFormFile publicKey)
+        {
+            if (publicKey == null)
+                throw new Exception("S501");
+
+            bool result;
+            using (MemoryStream memoryStream = new MemoryStream())
+            {
+                publicKey.CopyTo(memoryStream);
+                var publicKeyBytes = memoryStream.ToArray();
+
+                Revocation revocation = new Revocation(_configuration["DataOcspUri"], _configuration["ApiKeyVault"], _configuration["DataOcspStoreName"], _configuration["DataIssuerStoreName"], _configuration["DataOcspClientId"], _configuration["DataOcspClientSecret"]);
+                result = revocation.Validate(publicKeyBytes);
+            }
+
+            return result;
+        }
+        #endregion
+
         #region Tools   
         private User GetUser(HttpRequest request)
         {
