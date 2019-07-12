@@ -193,26 +193,26 @@ namespace Undani.Signature.Core
 
         private string GetSerialNumber()
         {
-            string result = "";
+            //string result = "";
 
-            string publicKeySerialNumber = X509PublicKey.GetSerialNumberString();
+            //string publicKeySerialNumber = X509PublicKey.GetSerialNumberString();
 
-            char[] aPublicKeySerialNumber = publicKeySerialNumber.ToCharArray();
+            //char[] aPublicKeySerialNumber = publicKeySerialNumber.ToCharArray();
 
-            bool flag = false;
+            //bool flag = false;
 
-            foreach (char val in aPublicKeySerialNumber)
-            {
-                if (flag)
-                {
-                    result += val;
-                    flag = false;
-                }
-                else
-                    flag = true;
-            }
+            //foreach (char val in aPublicKeySerialNumber)
+            //{
+            //    if (flag)
+            //    {
+            //        result += val;
+            //        flag = false;
+            //    }
+            //    else
+            //        flag = true;
+            //}
 
-            return result;
+            return X509PublicKey.GetSerialNumberString();
         }
 
         public bool ValidateRevocation()

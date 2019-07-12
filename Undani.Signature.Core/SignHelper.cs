@@ -198,14 +198,22 @@ namespace Undani.Signature.Core
                             }
 
 
-                            if (!template.Contains("NoApply"))
+                            if (template.Contains("NoApply"))
+                            {
+                                return true;
+                            }
+                            else if (template.Contains("OnlyProcedure"))
+                            {
+                                string xml = new Xml<DocumentSigned>().Serialize(documentSigned);
+                                List<ActivityInstanceDocumentSigned> activityInstanceDocumentsSigned = new TemplateCall(Configuration, User).SignatureGraphicRepresentation(document.SystemName, document.OriginalName, document.EnvironmentId, template.Replace("OnlyProcedure",""), xml);
+                                valid = new TrackingCall(Configuration, User).SetProcedureInstanceDocumentsSigned(procedureInstanceRefId, key, activityInstanceDocumentsSigned);
+                            }
+                            else
                             {
                                 string xml = new Xml<DocumentSigned>().Serialize(documentSigned);
                                 List<ActivityInstanceDocumentSigned> activityInstanceDocumentsSigned = new TemplateCall(Configuration, User).SignatureGraphicRepresentation(document.SystemName, document.OriginalName, document.EnvironmentId, template, xml);
                                 valid = new TrackingCall(Configuration, User).SetActivityInstanceDocumentsSigned(elementInstanceRefId, key, activityInstanceDocumentsSigned);
                             }
-                            else
-                                valid = true;
                             
                         }
                     }
@@ -326,36 +334,35 @@ namespace Undani.Signature.Core
 
             Stream source = boxCall.DownloadWithTraceabilitySheet(systemName, codeVerify);
 
-            PdfReader reader = new PdfReader(source);
+            string fileTemp = "";
+            using (PdfReader reader = new PdfReader(source))
+            {
+                PdfDocument document = new PdfDocument(reader);
 
-            PdfDocument document = new PdfDocument(reader);
+                fileTemp = System.IO.Path.GetTempFileName();
 
-            string fileTemp = System.IO.Path.GetTempFileName();
+                FileStream signed = File.OpenWrite(fileTemp);
 
-            FileStream signed = File.OpenWrite(fileTemp);
+                PdfSigner signer = new PdfSigner(reader, signed, false);
 
-            PdfSigner signer = new PdfSigner(reader, signed, false);
+                Rectangle rect = new Rectangle(80, 648, 450, 90);
 
-            PdfSignatureAppearance appearance = signer.GetSignatureAppearance()
-                .SetReason(codeVerify)
-                .SetLocation(ownerName)
-                .SetPageNumber(document.GetNumberOfPages())
-                .SetReuseAppearance(false);
+                PdfSignatureAppearance appearance = signer.GetSignatureAppearance()
+                    .SetReason(codeVerify)
+                    .SetLocation(ownerName)
+                    .SetPageNumber(document.GetNumberOfPages())
+                    .SetReuseAppearance(false)
+                    .SetReasonCaption("Código de verificación: ")
+                    .SetLocationCaption("Organización: ")
+                    .SetPageRect(rect);
 
-            Rectangle rect = new Rectangle(80, 648, 450, 90);
+                signer.SetFieldName(codeVerify);
+                signer.SetSignDate(date);
 
-            appearance
-                .SetReasonCaption("Código de verificación: ")
-                .SetLocationCaption("Organización: ")
-                .SetPageRect(rect)
-                .SetPageNumber(document.GetNumberOfPages());
+                IExternalSignature pks = new PrivateKeySignature(pk, digestAlgorithm);
 
-            signer.SetFieldName(codeVerify);
-            signer.SetSignDate(date);
-
-            IExternalSignature pks = new PrivateKeySignature(pk, digestAlgorithm);
-
-            signer.SignDetached(pks, chain, null, null, null, 0, subfilter);
+                signer.SignDetached(pks, chain, null, null, null, 0, subfilter);
+            }            
 
             boxCall.Upload(systemName, fileTemp);
         }

@@ -84,5 +84,24 @@ namespace Undani.Signature.Core.Resource
                 return true;
             }
         }
+
+        public bool SetProcedureInstanceDocumentsSigned(Guid procedureInstanceRefId, string key, List<ActivityInstanceDocumentSigned> activityInstanceDocumentsSigned)
+        {
+            string url = Configuration["ApiTracking"] + "/Execution/ProcedureInstance/SetDocumentSigned?procedureInstanceRefId=" + procedureInstanceRefId.ToString() + "&key=" + key;
+
+            using (var client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Add("Authorization", User.Token);
+
+                StringContent stringContent = new StringContent(JsonConvert.SerializeObject(activityInstanceDocumentsSigned), Encoding.UTF8, "application/json");
+
+                HttpResponseMessage httpResponseMessage = client.PostAsync(url, stringContent).Result;
+
+                if (httpResponseMessage.StatusCode != HttpStatusCode.OK)
+                    throw new Exception("S906-5");
+
+                return true;
+            }
+        }
     }
 }

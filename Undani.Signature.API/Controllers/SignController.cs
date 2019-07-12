@@ -119,6 +119,7 @@ namespace Undani.Signature.API.Controllers
 
             return result;
         }
+
         #endregion
 
         #region Login
@@ -162,6 +163,15 @@ namespace Undani.Signature.API.Controllers
         }
         #endregion
 
+        #region Document
+        [Route("Document/FormInstance/GetContent")]
+        public string GetDocumentContent(string key, Guid formInstanceId)
+        {
+            User user = GetUser(Request);
+            return new DocumentHelper(_configuration, user).GetContent(key, formInstanceId);
+        }
+        #endregion
+
         #region OCSP
         [HttpPost]
         [Route("OCSP/Validate")]
@@ -177,6 +187,9 @@ namespace Undani.Signature.API.Controllers
                 var publicKeyBytes = memoryStream.ToArray();
 
                 Revocation revocation = new Revocation(_configuration["DataOcspUri"], _configuration["ApiKeyVault"], _configuration["DataOcspStoreName"], _configuration["DataIssuerStoreName"], _configuration["DataOcspClientId"], _configuration["DataOcspClientSecret"]);
+                revocation.FileName = publicKey.FileName;
+                revocation.ConnectionString = _configuration["CnDbSignature"];
+
                 result = revocation.Validate(publicKeyBytes);
             }
 

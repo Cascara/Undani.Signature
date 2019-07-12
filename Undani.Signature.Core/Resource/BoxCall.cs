@@ -29,7 +29,7 @@ namespace Undani.Signature.Core.Resource
                 HttpResponseMessage response = client.GetAsync(url).Result;
 
                 if (response.StatusCode != HttpStatusCode.OK)
-                    throw new Exception("5901");
+                    throw new Exception("S901");
 
                 result = response.Content.ReadAsStreamAsync().Result;
             }

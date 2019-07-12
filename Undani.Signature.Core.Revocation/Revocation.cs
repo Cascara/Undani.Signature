@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
+using Newtonsoft.Json;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Ocsp;
@@ -22,6 +25,7 @@ namespace Undani.Signature.Core
         private string _issuerStoreName;
         private string _clientId;
         private string _clientSecret;
+        private string _fileName;
 
         public Revocation(string ocspUrl, string vaultBaseUrl, string ocspStoreName, string issuerStoreName, string clientId, string clientSecret)
         {
@@ -33,15 +37,21 @@ namespace Undani.Signature.Core
             _clientSecret = clientSecret;
         }
 
+        public string FileName { get; set; }
+
+        public string ConnectionString { get; set; }
+
         public bool Validate(byte[] publicKey)
         {
+            var cryptographycertificate = new System.Security.Cryptography.X509Certificates.X509Certificate(publicKey);
+
             X509Certificate certificate = new X509CertificateParser().ReadCertificate(publicKey);
 
             X509Certificate issuerCertificate = GetIssuerCertificate();
 
             X509Certificate ocspCertificate = GetOcspCertificate();
 
-            return ValidateOCSP(ocspCertificate, certificate, issuerCertificate);
+            return ValidateOCSP(ocspCertificate, issuerCertificate, certificate, cryptographycertificate);
         }
 
         private X509Certificate GetIssuerCertificate()
@@ -77,7 +87,7 @@ namespace Undani.Signature.Core
             return certificate;
         }
 
-        private bool ValidateOCSP(X509Certificate ocspCertificate, X509Certificate certificate, X509Certificate issuerCertificate)
+        private bool ValidateOCSP(X509Certificate ocspCertificate, X509Certificate issuerCertificate, X509Certificate certificate, System.Security.Cryptography.X509Certificates.X509Certificate cryptographycertificate)
         {
             var serialNumber = certificate.SerialNumber;
 
@@ -112,6 +122,8 @@ namespace Undani.Signature.Core
                 var certificateStatus = singleResps[0].GetCertStatus();
 
                 var certificateId = singleResps[0].GetCertID();
+
+                SetLog(cryptographycertificate, serialNumber.ToString(), JsonConvert.SerializeObject(certificateStatus), JsonConvert.SerializeObject(certificateId));
 
                 bool certificateCompare = certificateId != null && certificateId.SerialNumber.CompareTo(serialNumber) == 0;
 
@@ -158,6 +170,32 @@ namespace Undani.Signature.Core
                 throw new Exception("S514");
 
             return httpWebResponse;
+        }
+
+        private void SetLog(System.Security.Cryptography.X509Certificates.X509Certificate cryptographycertificate, string serialNumber, string certStatus, string certId)
+        {
+            if (ConnectionString != string.Empty)                
+            {
+                using (SqlConnection cn = new SqlConnection(ConnectionString))
+                {
+                    cn.Open();
+
+                    using (SqlCommand cmd = new SqlCommand("usp_Set_Ocsp", cn) { CommandType = CommandType.StoredProcedure })
+                    {
+                        cmd.Parameters.Add(new SqlParameter("@FileName", SqlDbType.VarChar, 250) { Value = FileName });
+                        cmd.Parameters.Add(new SqlParameter("@BouncyCastle_SerialNumber", SqlDbType.VarChar, 250) { Value = serialNumber });
+                        cmd.Parameters.Add(new SqlParameter("@Cryptography_SerialNumber", SqlDbType.VarChar, 250) { Value = cryptographycertificate.GetSerialNumberString() });
+                        cmd.Parameters.Add(new SqlParameter("@Issuer", SqlDbType.VarChar, 1000) { Value = cryptographycertificate.Issuer });
+                        cmd.Parameters.Add(new SqlParameter("@Subject", SqlDbType.VarChar, 1000) { Value = cryptographycertificate.Subject });
+                        cmd.Parameters.Add(new SqlParameter("@CertStatus", SqlDbType.VarChar, 500) { Value = certStatus });
+                        cmd.Parameters.Add(new SqlParameter("@CertId", SqlDbType.VarChar, 500) { Value = certId });
+
+                        cmd.ExecuteNonQuery();
+                    }
+
+                }
+            }
+            
         }
     }
 }
