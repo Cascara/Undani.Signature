@@ -198,14 +198,14 @@ namespace Undani.Signature.Core
                             }
 
 
-                            if (template.Contains("NoApply"))
+                            if (template.Contains("NoApply_"))
                             {
                                 return true;
                             }
-                            else if (template.Contains("OnlyProcedure"))
+                            else if (template.Contains("OnlyProcedure_"))
                             {
                                 string xml = new Xml<DocumentSigned>().Serialize(documentSigned);
-                                List<ActivityInstanceDocumentSigned> activityInstanceDocumentsSigned = new TemplateCall(Configuration, User).SignatureGraphicRepresentation(document.SystemName, document.OriginalName, document.EnvironmentId, template.Replace("OnlyProcedure",""), xml);
+                                List<ActivityInstanceDocumentSigned> activityInstanceDocumentsSigned = new TemplateCall(Configuration, User).SignatureGraphicRepresentation(document.SystemName, document.OriginalName, document.EnvironmentId, template.Replace("OnlyProcedure_",""), xml);
                                 valid = new TrackingCall(Configuration, User).SetProcedureInstanceDocumentsSigned(procedureInstanceRefId, key, activityInstanceDocumentsSigned);
                             }
                             else
