@@ -62,6 +62,8 @@ namespace Undani.Signature.Core
 
             if (elementSignature.Create)
             {
+                DeleteDocument(procedureInstanceRefId, elementSignature.Key);
+
                 JToken jToken;
 
                 if (elementSignature.JsonPaths.Count == 1 && elementSignature.JsonPaths[0] == "/")
@@ -84,29 +86,7 @@ namespace Undani.Signature.Core
                 }
             }
 
-            using (SqlConnection cn = new SqlConnection(Configuration["CnDbSignature"]))
-            {
-                cn.Open();
-
-                using (SqlCommand cmd = new SqlCommand("usp_Set_Document", cn))
-                {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.Add(new SqlParameter("@ProcedureInstanceRefId", SqlDbType.UniqueIdentifier) { Value = procedureInstanceRefId });
-                    cmd.Parameters.Add(new SqlParameter("@Key", SqlDbType.VarChar, 50) { Value = elementSignature.Key });
-                    cmd.Parameters.Add(new SqlParameter("@FormInstanceId", SqlDbType.UniqueIdentifier) { Value = formInstanceId });
-                    cmd.Parameters.Add(new SqlParameter("@EnvironmentId", SqlDbType.UniqueIdentifier) { Value = environmentId });
-                    cmd.Parameters.Add(new SqlParameter("@SystemName", SqlDbType.UniqueIdentifier) { Value = Guid.NewGuid() });
-                    cmd.Parameters.Add(new SqlParameter("@OriginalName", SqlDbType.VarChar, 250) { Value = elementSignature.OriginalName });
-                    cmd.Parameters.Add(new SqlParameter("@Extension", SqlDbType.VarChar, 5) { Value = "" });
-                    cmd.Parameters.Add(new SqlParameter("@Content", SqlDbType.VarChar, -1) { Value = content, Direction = ParameterDirection.InputOutput });
-                    cmd.Parameters.Add(new SqlParameter("@Created", SqlDbType.DateTime) { Value = DateTimeNow });
-
-                    cmd.ExecuteNonQuery();
-
-                    content = (string)cmd.Parameters["@Content"].Value;
-                }
-
-            }
+            content = SetDocument(procedureInstanceRefId, elementSignature.Key, formInstanceId, environmentId, Guid.NewGuid(), elementSignature.OriginalName, "", content);
 
             return Convert.ToBase64String(GetHash(content));
         }
@@ -131,31 +111,51 @@ namespace Undani.Signature.Core
                 systemName = Guid.Parse(sSystemName.Substring(0, sSystemName.IndexOf('.')));
             }
 
+            content = SetDocument(procedureInstanceRefId, elementSignature.Key, formInstanceId, environmentId, systemName, elementSignature.OriginalName, "PDF", content);
+
+            return Convert.ToBase64String(GetHash(content));
+        }
+
+        public string SetDocument(Guid procedureInstanceRefId, string key, Guid formInstanceId, Guid environmentId, Guid systemName, string originalName, string extension, string content)
+        {
             using (SqlConnection cn = new SqlConnection(Configuration["CnDbSignature"]))
             {
                 cn.Open();
 
-                using (SqlCommand cmd = new SqlCommand("usp_Set_Document", cn))
+                using (SqlCommand cmd = new SqlCommand("usp_Set_Document", cn) { CommandType = CommandType.StoredProcedure })
                 {
-                    cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.Add(new SqlParameter("@ProcedureInstanceRefId", SqlDbType.UniqueIdentifier) { Value = procedureInstanceRefId });
-                    cmd.Parameters.Add(new SqlParameter("@Key", SqlDbType.VarChar, 50) { Value = elementSignature.Key });
+                    cmd.Parameters.Add(new SqlParameter("@Key", SqlDbType.VarChar, 50) { Value = key });
                     cmd.Parameters.Add(new SqlParameter("@FormInstanceId", SqlDbType.UniqueIdentifier) { Value = formInstanceId });
                     cmd.Parameters.Add(new SqlParameter("@EnvironmentId", SqlDbType.UniqueIdentifier) { Value = environmentId });
                     cmd.Parameters.Add(new SqlParameter("@SystemName", SqlDbType.UniqueIdentifier) { Value = systemName });
-                    cmd.Parameters.Add(new SqlParameter("@OriginalName", SqlDbType.VarChar, 250) { Value = elementSignature.OriginalName });
-                    cmd.Parameters.Add(new SqlParameter("@Extension", SqlDbType.VarChar, 5) { Value = "PDF" });
+                    cmd.Parameters.Add(new SqlParameter("@OriginalName", SqlDbType.VarChar, 250) { Value = originalName });
+                    cmd.Parameters.Add(new SqlParameter("@Extension", SqlDbType.VarChar, 5) { Value = extension });
                     cmd.Parameters.Add(new SqlParameter("@Content", SqlDbType.VarChar, -1) { Value = content, Direction = ParameterDirection.InputOutput });
                     cmd.Parameters.Add(new SqlParameter("@Created", SqlDbType.DateTime) { Value = DateTimeNow });
 
                     cmd.ExecuteNonQuery();
 
-                    content = (string)cmd.Parameters["@Content"].Value;
+                    return (string)cmd.Parameters["@Content"].Value;
                 }
 
             }
+        }
 
-            return Convert.ToBase64String(GetHash(content));
+        public void DeleteDocument(Guid procedureInstanceRefId, string key)
+        {
+            using (SqlConnection cn = new SqlConnection(Configuration["CnDbSignature"]))
+            {
+                cn.Open();
+
+                using (SqlCommand cmd = new SqlCommand("usp_Delete_Document", cn) { CommandType = CommandType.StoredProcedure })
+                {
+                    cmd.Parameters.Add(new SqlParameter("@ProcedureInstanceRefId", SqlDbType.UniqueIdentifier) { Value = procedureInstanceRefId });
+                    cmd.Parameters.Add(new SqlParameter("@Key", SqlDbType.VarChar, 50) { Value = key });
+
+                    cmd.ExecuteNonQuery();
+                }
+            }
         }
 
         public bool SetSignText(Guid procedureInstanceRefId, Guid elementInstanceRefId, string key, string template, string digitalSignature)
@@ -165,6 +165,9 @@ namespace Undani.Signature.Core
             bool valid = false;
             if (ValidateSeal(document.Content, digitalSignature))
             {
+                if (SignExists(procedureInstanceRefId, key))
+                    return true;
+
                 using (SqlConnection cn = new SqlConnection(Configuration["CnDbSignature"]))
                 {
                     cn.Open();
@@ -234,6 +237,9 @@ namespace Undani.Signature.Core
             bool valid = false;
             if (ValidateSeal(document.Content, digitalSignature))
             {
+                if (SignExists(procedureInstanceRefId, key))
+                    return true;
+
                 X509Certificate[] chain = new X509Certificate[1];
 
                 chain[0] = new X509CertificateParser().ReadCertificate(PublicKey);
@@ -291,7 +297,29 @@ namespace Undani.Signature.Core
 
             return valid;
         }
-        
+
+        private bool SignExists(Guid procedureInstanceRefId, string key)
+        {
+            using (SqlConnection cn = new SqlConnection(Configuration["CnDbSignature"]))
+            {
+                cn.Open();
+
+                using (SqlCommand cmd = new SqlCommand("usp_Set_SignExists", cn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.Add(new SqlParameter("@ProcedureInstanceRefId", SqlDbType.UniqueIdentifier) { Value = procedureInstanceRefId });
+                    cmd.Parameters.Add(new SqlParameter("@Key", SqlDbType.VarChar, 50) { Value = key });
+                    cmd.Parameters.Add(new SqlParameter("@RFC", SqlDbType.VarChar, 13) { Value = RFC });
+                    cmd.Parameters.Add(new SqlParameter("@Exists", SqlDbType.Bit) { Direction = ParameterDirection.Output });
+
+                    cmd.ExecuteNonQuery();
+
+                    return (bool)cmd.Parameters["@Exists"].Value;
+                }
+
+            }
+        }
+
         private Document GetDocument(Guid procedureInstanceRefId, string key)
         {
             Document document = new Document();
@@ -356,7 +384,7 @@ namespace Undani.Signature.Core
                     .SetLocationCaption("Organización: ")
                     .SetPageRect(rect);
 
-                signer.SetFieldName(codeVerify);
+                signer.SetFieldName(RFC);
                 signer.SetSignDate(date);
 
                 IExternalSignature pks = new PrivateKeySignature(pk, digestAlgorithm);

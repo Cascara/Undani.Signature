@@ -231,44 +231,6 @@ namespace Undani.Signature.API.Controllers
 
             return user;
         }
-        [Route("prueba")]
-        //public void prueba()
-        //{
-        //    using (var client = new HttpClient())
-        //    {
-        //        var requestContent = new MultipartFormDataContent();
-
-        //        requestContent.Add(new StringContent("{\"propiedad\":25}", Encoding.UTF8), "procedureInstanceContent");
-
-        //        HttpResponseMessage httpResponseMessage = client.PostAsync(@"http://localhost:3001/Execution/SystemAccionInstance/Finish?systemActionInstanceId=E81A1B05-1FFD-4F3E-AED6-FE146B40132E", requestContent).Result;
-
-        //        if (httpResponseMessage.StatusCode != HttpStatusCode.OK)
-        //            throw new Exception("xxxxx");
-        //    }
-
-        //    try
-        //    {
-        //        var baseUri = ConfigurationManager.AppSettings["UrlTracking"];
-        //        var resourceUrl = $"{baseUri}/Execution/SystemAccionInstance/Finish?systemActionInstanceId={said}";
-
-        //        using (var client = new HttpClient())
-        //        {
-
-        //            var requestContent = new MultipartFormDataContent();
-
-        //            requestContent.Add(new StringContent("{\"folioAfiliacionField\":1580152,\"folioClienteField\":null,\"codigoRespuestaField\":\"110\",\"descRespuestaField\":\"No se pudo realizar el registro de la afiliación\",\"PropertyChanged\":null}", Encoding.UTF8), "procedureInstanceContent");
-
-        //            HttpResponseMessage httpResponseMessage = client.PostAsync(resourceUrl, requestContent).Result;
-
-        //            if (httpResponseMessage.StatusCode != HttpStatusCode.OK)
-        //                throw new Exception("xxxxx");
-        //        }
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        throw e;
-        //    }
-        //}
         #endregion
     }
 }

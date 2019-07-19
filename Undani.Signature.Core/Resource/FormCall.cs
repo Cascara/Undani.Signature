@@ -22,12 +22,12 @@ namespace Undani.Signature.Core.Resource
             string json;
             using (var client = new HttpClient())
             {
-                client.DefaultRequestHeaders.Add("Authorization", User.Token);
+                //client.DefaultRequestHeaders.Add("Authorization", User.Token);
 
                 HttpResponseMessage response = client.GetAsync(url).Result;
 
                 if (response.StatusCode != HttpStatusCode.OK)
-                    throw new Exception("S903");
+                    throw new Exception("S903-1");
 
                 json = response.Content.ReadAsStringAsync().Result;
             }            
@@ -50,7 +50,7 @@ namespace Undani.Signature.Core.Resource
                 HttpResponseMessage response = client.PostAsync(url, stringContent).Result;
 
                 if (response.StatusCode != HttpStatusCode.OK)
-                    throw new Exception("S903");
+                    throw new Exception("S903-2");
 
                 return bool.Parse(response.Content.ReadAsStringAsync().Result);
             }
