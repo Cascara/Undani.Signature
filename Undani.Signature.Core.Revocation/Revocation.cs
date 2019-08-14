@@ -41,17 +41,15 @@ namespace Undani.Signature.Core
 
         public string ConnectionString { get; set; }
 
-        public bool Validate(byte[] publicKey)
+        public void Validate(byte[] publicKey)
         {
-            var cryptographycertificate = new System.Security.Cryptography.X509Certificates.X509Certificate(publicKey);
-
             X509Certificate certificate = new X509CertificateParser().ReadCertificate(publicKey);
 
             X509Certificate issuerCertificate = GetIssuerCertificate();
 
             X509Certificate ocspCertificate = GetOcspCertificate();
 
-            return ValidateOCSP(ocspCertificate, issuerCertificate, certificate, cryptographycertificate);
+            ValidateOCSP(ocspCertificate, issuerCertificate, certificate);
         }
 
         private X509Certificate GetIssuerCertificate()
@@ -87,7 +85,7 @@ namespace Undani.Signature.Core
             return certificate;
         }
 
-        private bool ValidateOCSP(X509Certificate ocspCertificate, X509Certificate issuerCertificate, X509Certificate certificate, System.Security.Cryptography.X509Certificates.X509Certificate cryptographycertificate)
+        private void ValidateOCSP(X509Certificate ocspCertificate, X509Certificate issuerCertificate, X509Certificate certificate)
         {
             var serialNumber = certificate.SerialNumber;
 
@@ -102,34 +100,33 @@ namespace Undani.Signature.Core
                 int status = ocspResp.Status;
 
                 if (status != OcspRespStatus.Successful)
-                    return false;
+                    throw new Exception("S513-1 (" + ocspResp.Status + ")");
 
                 var basicOcspResp = (BasicOcspResp)ocspResp.GetResponseObject();
 
                 if (basicOcspResp == null)
-                    return false;
+                    throw new Exception("S513-2");
 
                 var singleResps = basicOcspResp.Responses;
 
                 if (singleResps == null || singleResps.Length == 0)
-                    return false;
+                    throw new Exception("S513-3");
 
                 bool validResponse = basicOcspResp.Verify(ocspCertificate.GetPublicKey());
 
                 if (!validResponse)
-                    throw new Exception("S513");
+                    throw new Exception("S513-4");
 
                 var certificateStatus = singleResps[0].GetCertStatus();
 
                 var certificateId = singleResps[0].GetCertID();
-
-                SetLog(cryptographycertificate, serialNumber.ToString(), JsonConvert.SerializeObject(certificateStatus), JsonConvert.SerializeObject(certificateId));
-
+                
                 bool certificateCompare = certificateId != null && certificateId.SerialNumber.CompareTo(serialNumber) == 0;
 
                 bool valid = certificateStatus == null && certificateCompare;
 
-                return valid;
+                if (!valid)
+                    throw new Exception("S516");
             }
         }
 
@@ -174,7 +171,7 @@ namespace Undani.Signature.Core
 
         private void SetLog(System.Security.Cryptography.X509Certificates.X509Certificate cryptographycertificate, string serialNumber, string certStatus, string certId)
         {
-            if (ConnectionString != string.Empty)                
+            if (ConnectionString != string.Empty)
             {
                 using (SqlConnection cn = new SqlConnection(ConnectionString))
                 {
@@ -195,7 +192,7 @@ namespace Undani.Signature.Core
 
                 }
             }
-            
+
         }
     }
 }

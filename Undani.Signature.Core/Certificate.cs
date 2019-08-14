@@ -17,65 +17,43 @@ namespace Undani.Signature.Core
 {
     public abstract class Certificate
     {
-        private IConfiguration _configuration;
-        private User _user;
         private Guid _environmentId;
-        private byte[] _publicKey;
         private string _number;
         private string _content;
         private string _error = string.Empty;
-
-        private X509Certificate _x509PublicKey;
-
         private string _curp = "";
         private string _rfc;
-        private string _name;
-        private DateTime _expirationDate;
-        private DateTime _datetimeNow;
-        private string _serialNumber;
 
         public Certificate(IConfiguration configuration, User user, Guid environmentId, byte[] publicKey)
         {
-            _configuration = configuration;
+            Configuration = configuration;
 
             if (user != null)
-                _user = user;
+                User = user;
             else
-                _user = GetAnonymousUser();
+                User = GetAnonymousUser();
 
             _environmentId = environmentId;
 
-            _publicKey = publicKey;
+            PublicKey = publicKey;
 
-            _x509PublicKey = new X509Certificate(_publicKey);
+            X509PublicKey = new X509Certificate(PublicKey);
 
             SetCertificateProperties();
         }
 
-        public IConfiguration Configuration
-        {
-            get { return _configuration; }
-        }
+        public IConfiguration Configuration { get; }
 
-        public User User
-        {
-            get { return _user; }
-        }
+        public User User { get; }
 
         public Guid EnvironmentId
         {
             get { return _environmentId; }
         }
 
-        public byte[] PublicKey
-        {
-            get { return _publicKey; }
-        }
+        public byte[] PublicKey { get; }
 
-        public X509Certificate X509PublicKey
-        {
-            get { return _x509PublicKey; }
-        }
+        public X509Certificate X509PublicKey { get; }
 
         public string RFC
         {
@@ -109,25 +87,15 @@ namespace Undani.Signature.Core
             }
         }
 
-        public string Name
-        {
-            get { return _name; }
-        }
+        public string Name { get; private set; }
 
-        public DateTime ExpirationDate
-        {
-            get { return _expirationDate; }
-        }
+        public DateTime ExpirationDate { get; private set; }
 
-        public DateTime DateTimeNow
-        {
-            get { return _datetimeNow; }
-        }
+        public DateTime DateTimeNow { get; private set; }
 
-        public string SerialNumber
-        {
-            get { return _serialNumber; }
-        }
+        public string SerialNumber { get; private set; }
+
+        public int CertifyingAuthority { get; private set; }
 
         private void SetCertificateProperties()
         {
@@ -157,18 +125,20 @@ namespace Undani.Signature.Core
                     throw new Exception("S506");
             }
 
-            _name = result["O"];
+            Name = result["O"];
             if (Name.Length == 0)
                 throw new Exception("S507");
 
-            _expirationDate = DateTime.Parse(X509PublicKey.GetExpirationDateString());
+            ExpirationDate = DateTime.Parse(X509PublicKey.GetExpirationDateString());
 
-            _datetimeNow = GetDateTimeNow();
+            DateTimeNow = GetDateTimeNow();
 
-            if (ExpirationDate < DateTimeNow && RFC != "MARL8408036H4")
+            if (ExpirationDate < DateTimeNow)
                 throw new Exception("S508");
 
-            _serialNumber = GetSerialNumber();
+            SerialNumber = GetSerialNumber();
+
+            CertifyingAuthority = GetCertifyingAuthority(); 
 
         }
 
@@ -193,32 +163,49 @@ namespace Undani.Signature.Core
 
         private string GetSerialNumber()
         {
-            //string result = "";
+            string result = "";
 
-            //string publicKeySerialNumber = X509PublicKey.GetSerialNumberString();
+            string publicKeySerialNumber = X509PublicKey.GetSerialNumberString();
 
-            //char[] aPublicKeySerialNumber = publicKeySerialNumber.ToCharArray();
+            for (int i = 0; i < publicKeySerialNumber.Length; i = i + 2)
+            {
+                result = publicKeySerialNumber.Substring(i, 2) + result;
+            }
 
-            //bool flag = false;
-
-            //foreach (char val in aPublicKeySerialNumber)
-            //{
-            //    if (flag)
-            //    {
-            //        result += val;
-            //        flag = false;
-            //    }
-            //    else
-            //        flag = true;
-            //}
-
-            return X509PublicKey.GetSerialNumberString();
+            return result;
         }
 
-        public bool ValidateRevocation()
+        private int GetCertifyingAuthority()
         {
-            Revocation revocation = new Revocation(Configuration["DataOcspUri"], Configuration["ApiKeyVault"], Configuration["DataOcspStoreName"], Configuration["DataIssuerStoreName"], Configuration["DataOcspClientId"], Configuration["DataOcspClientSecret"]);
-            return revocation.Validate(_publicKey);
+            if (SerialNumber == "")
+                throw new Exception("S515");
+
+            string result = "";
+
+            string publicKeySerialNumber = SerialNumber;
+
+            char[] aPublicKeySerialNumber = publicKeySerialNumber.ToCharArray();
+
+            bool flag = false;
+
+            foreach (char val in aPublicKeySerialNumber)
+            {
+                if (flag)
+                {
+                    result += val;
+                    flag = false;
+                }
+                else
+                    flag = true;
+            }
+
+            return int.Parse(result.Substring(6, 6));
+        }
+
+        public void ValidateRevocation()
+        {
+            Revocation revocation = new Revocation(Configuration["DataOcspUri"], Configuration["ApiKeyVault"], Configuration["DataOcspStoreName"] + CertifyingAuthority.ToString(), Configuration["DataOcspIssuerStoreName"] + CertifyingAuthority.ToString(), Configuration["DataOcspClientId"], Configuration["DataOcspClientSecret"]);
+            revocation.Validate(PublicKey);
         }
 
         public byte[] GetHash(string text)

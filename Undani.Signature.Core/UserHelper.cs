@@ -48,7 +48,7 @@ namespace Undani.Signature.Core
             }
         }
 
-        public string GetPassword(string userName, string content)
+        public string GetPassword(string userName, string contentFactorAuthentication)
         {
             using (SqlConnection cn = new SqlConnection(Configuration["CnDbSignature"]))
             {
@@ -58,7 +58,7 @@ namespace Undani.Signature.Core
 
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.Add(new SqlParameter("@UserName", SqlDbType.VarChar, 13) { Value = userName });
-                    cmd.Parameters.Add(new SqlParameter("@Content", SqlDbType.VarChar, 2000) { Value = content });
+                    cmd.Parameters.Add(new SqlParameter("@ContentFactorAuthentication", SqlDbType.VarChar, 2000) { Value = contentFactorAuthentication });
                     cmd.Parameters.Add(new SqlParameter("@Password", SqlDbType.VarChar, 250) { Direction = ParameterDirection.Output });
 
                     cmd.ExecuteNonQuery();
@@ -68,7 +68,7 @@ namespace Undani.Signature.Core
             }
         }
 
-        public _UserLogin CreateUser(Guid ownerId, string rfc, string userName, string name, string content, string password)
+        public _UserLogin CreateUser(Guid ownerId, string rfc, string userName, string name, string content, string contentFactorAuthentication, string password)
         {
             _UserIdentity _userIdentity = new IdentityCall(Configuration, _user).CreateUser(ownerId, name, rfc, password);
 
@@ -88,6 +88,7 @@ namespace Undani.Signature.Core
                     cmd.Parameters.Add(new SqlParameter("@RFC", SqlDbType.VarChar, 13) { Value = rfc });
                     cmd.Parameters.Add(new SqlParameter("@Password", SqlDbType.VarChar, 250) { Value = password });
                     cmd.Parameters.Add(new SqlParameter("@Content", SqlDbType.VarChar, 2000) { Value = content });
+                    cmd.Parameters.Add(new SqlParameter("@ContentFactorAuthentication", SqlDbType.VarChar, 1000) { Value = contentFactorAuthentication });
 
                     cmd.ExecuteNonQuery();
                 }

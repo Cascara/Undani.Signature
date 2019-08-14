@@ -23,6 +23,8 @@ namespace Undani.Signature.Core
         
         public List<ContentSigned> Start(Guid procedureInstanceRefId, Guid elementInstanceRefId, List<string> templates)
         {
+            ValidateRevocation();
+
             ActivityInstanceSignature activityInstanceSignature = new TrackingCall(Configuration, User).GetActivityInstanceSignature(elementInstanceRefId);
 
             JObject oJson = new FormCall(Configuration, User).GetJsonFormInstance(activityInstanceSignature.FormInstanceId);

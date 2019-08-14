@@ -183,20 +183,19 @@ namespace Undani.Signature.API.Controllers
             if (publicKey == null)
                 throw new Exception("S501");
 
-            bool result;
             using (MemoryStream memoryStream = new MemoryStream())
             {
                 publicKey.CopyTo(memoryStream);
                 var publicKeyBytes = memoryStream.ToArray();
 
-                Revocation revocation = new Revocation(_configuration["DataOcspUri"], _configuration["ApiKeyVault"], _configuration["DataOcspStoreName"], _configuration["DataIssuerStoreName"], _configuration["DataOcspClientId"], _configuration["DataOcspClientSecret"]);
+                Revocation revocation = new Revocation(_configuration["DataOcspUri"], _configuration["ApiKeyVault"], _configuration["DataOcspStoreName"], _configuration["DataOcspIssuerStoreName"], _configuration["DataOcspClientId"], _configuration["DataOcspClientSecret"]);
                 revocation.FileName = publicKey.FileName;
                 revocation.ConnectionString = _configuration["CnDbSignature"];
 
-                result = revocation.Validate(publicKeyBytes);
+                revocation.Validate(publicKeyBytes);
             }
 
-            return result;
+            return true;
         }
         #endregion
 

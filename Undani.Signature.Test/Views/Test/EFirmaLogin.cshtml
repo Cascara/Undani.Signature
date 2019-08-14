@@ -142,8 +142,24 @@
             $('#login').click(function (e) {
                 $('#login').attr('disabled', true);
                 loginForm.Login({
-                    RFC: $('#RFC').val()
-                });
+                                  "codigoPostalCTField": "61800",
+                                  "domicilioCTField": "CERRADA DE PORTUGAL 60 SANTA CLARA DEL C",
+                                  "localidadCTField": "SALVADOR ESCALANTE MICHOACAN DE OCAMPO",
+                                  "municipioCTField": "K84",
+                                  "nombreCTField": "PABLO ANGEL RAMIREZ",
+                                  "numeroRegistroPatronalField": null,
+                                  "registroPatronalField": "K8410825102",
+                                  "rfcCTField": "HEGT7610034S2",
+                                  "totalEventualesField": 0,
+                                  "totalEventualesFieldSpecified": true,
+                                  "totalEventualesCampoField": 0,
+                                  "totalEventualesCampoFieldSpecified": true,
+                                  "totalEventualesUrbanosField": 0,
+                                  "totalEventualesUrbanosFieldSpecified": true,
+                                  "totalPermanentesField": 1,
+                                  "totalPermanentesFieldSpecified": true,
+                                  "PropertyChanged": null
+                                });
             });
 
             $(loginForm).on("starting", function (event) {

@@ -18,15 +18,16 @@
             "S510": "The digital signature is invalid.",
             "S511": "The certificate chain does not comply with the policy.",
             "S512": "Failed to obtain the JWT token.",
-            "S513": "The response of the OCSP service has not been signed with the OCSP certificate.",
+            "S513": "There was a problem trying to validate the certificate revocation.",
             "S514": "The response of the revocaion service was not successful.",
+            "S515": "Serial number not found.",
+            "S516": "The certificate is revoked.",
             "S901": "It was not possible to add the traceability page in box.",
             "S902": "It was not possible to connect with repository.",
             "S903": "There was an error when trying to consume form resources.",
             "S904": "There was an error when trying to consume identity resources.",
             "S905": "There was an error when trying to consume template resources.",
             "S906": "There was an error when trying to consume tracking resources."
-
         };
 
         var settings = {
