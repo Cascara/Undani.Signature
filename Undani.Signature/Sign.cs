@@ -8,8 +8,8 @@ namespace Undani.Signature
     {
         public string SerialNumber { get; set; }
         public string Name { get; set; }
-        public string RFC { get; set; }
-        public string CURP { get; set; }
+        public string Reference { get; set; }
+        public string PopulationUniqueIdentifier { get; set; }
         public string DigitalSignature { get; set; }
         public DateTime Date { get; set; }
     }

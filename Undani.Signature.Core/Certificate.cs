@@ -21,8 +21,8 @@ namespace Undani.Signature.Core
         private string _number;
         private string _content;
         private string _error = string.Empty;
-        private string _curp = "";
-        private string _rfc;
+        private string _populationUniqueIdentifier = "";
+        private string _reference;
 
         public Certificate(IConfiguration configuration, User user, Guid environmentId, byte[] publicKey)
         {
@@ -55,35 +55,35 @@ namespace Undani.Signature.Core
 
         public X509Certificate X509PublicKey { get; }
 
-        public string RFC
+        public string Reference
         {
             get {
-                if (_rfc.Contains("/"))
+                if (_reference.Contains("/"))
                 {
-                    if (_rfc == "AAA010101AAA / HEGT7610034S2")
+                    if (_reference == "AAA010101AAA / HEGT7610034S2")
                     {
-                        return _rfc.Substring(_rfc.IndexOf("/") + 1).Trim().ToUpper();
+                        return _reference.Substring(_reference.IndexOf("/") + 1).Trim().ToUpper();
                     }
                     else
                     {
-                        return _rfc.Substring(0, _rfc.IndexOf("/")-1).Trim().ToUpper();
+                        return _reference.Substring(0, _reference.IndexOf("/")-1).Trim().ToUpper();
                     }
                     
                 }
                 else
-                    return _rfc.ToUpper();
+                    return _reference.ToUpper();
             }
         }
 
-        public string CURP
+        public string PopulationUniqueIdentifier
         {
             get {
-                if (_curp.Contains("/"))
+                if (_populationUniqueIdentifier.Contains("/"))
                 {
-                    return _curp.Replace("/", "").Trim().Replace("\"", "").Trim();
+                    return _populationUniqueIdentifier.Replace("/", "").Trim().Replace("\"", "").Trim();
                 }
                 else
-                    return _curp;
+                    return _populationUniqueIdentifier;
             }
         }
 
@@ -114,14 +114,14 @@ namespace Undani.Signature.Core
                 throw new Exception("S504");
 
 
-            _rfc = result["OID.2.5.4.45"];
-            if (RFC.Length != 13 && RFC.Length != 12)
+            _reference = result["OID.2.5.4.45"];
+            if (Reference.Length != 13 && Reference.Length != 12)
                 throw new Exception("S505");
 
-            if (RFC.Length == 13)
+            if (Reference.Length == 13)
             {
-                _curp = result["SERIALNUMBER"];
-                if (CURP.Length != 18)
+                _populationUniqueIdentifier = result["SERIALNUMBER"];
+                if (PopulationUniqueIdentifier.Length != 18)
                     throw new Exception("S506");
             }
 
@@ -287,16 +287,16 @@ namespace Undani.Signature.Core
 
         }
 
-        public void ValidateSignatory(string rfc = "")
+        public void ValidateSignatory(string reference = "")
         {
-            if (rfc != "")
+            if (reference != "")
             {
-                if (rfc.ToUpper() != RFC)
+                if (reference.ToUpper() != Reference)
                     throw new Exception("S509");
             }
             else
             {
-                if (User.RFC != RFC)
+                if (User.Reference != Reference)
                     throw new Exception("S509");
             }
         }

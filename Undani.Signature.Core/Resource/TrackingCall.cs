@@ -12,7 +12,7 @@ namespace Undani.Signature.Core.Resource
     {
         public TrackingCall(IConfiguration configuration, User user) : base(configuration, user) { }
 
-        public void CreateUser(Guid userId, Guid ownerId, string userName, string givenName, string familyName, string email, string rfc, string content)
+        public void CreateUser(Guid userId, Guid ownerId, string reference, string roles, string userName, string givenName, string familyName, string email, string content)
         {           
             var user = new { content = content };
 
@@ -20,7 +20,7 @@ namespace Undani.Signature.Core.Resource
             {
                 client.DefaultRequestHeaders.Add("Authorization", User.Token);
 
-                string url = Configuration["ApiTracking"] + "/Execution/User/Create?userId=" + userId.ToString() + "&ownerId=" + ownerId.ToString() + "&userName=" + userName + "&givenName=" + givenName + "&rfc=" + rfc;
+                string url = Configuration["ApiTracking"] + "/Execution/User/Create?userId=" + userId.ToString() + "&ownerId=" + ownerId.ToString() + "&reference=" + reference + "&roles" + roles + "&userName=" + userName + "&givenName=" + givenName;
 
                 var formParameters = new List<KeyValuePair<string, string>>();
                 formParameters.Add(new KeyValuePair<string, string>("content", content));
@@ -30,6 +30,27 @@ namespace Undani.Signature.Core.Resource
 
                 if (response.StatusCode != HttpStatusCode.OK)
                     throw new Exception("S906-1");
+            }
+        }
+
+        public void SetContent(Guid userId, string content)
+        {
+            var user = new { content = content };
+
+            using (var client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Add("Authorization", User.Token);
+
+                string url = Configuration["ApiTracking"] + "/Execution/User/SetContent?userId=" + userId.ToString();
+
+                var formParameters = new List<KeyValuePair<string, string>>();
+                formParameters.Add(new KeyValuePair<string, string>("content", content));
+                var formContent = new FormUrlEncodedContent(formParameters);
+
+                HttpResponseMessage response = client.PostAsync(url, formContent).Result;
+
+                if (response.StatusCode != HttpStatusCode.OK)
+                    throw new Exception("S906-2");
             }
         }
 

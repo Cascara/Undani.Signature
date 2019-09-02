@@ -18,7 +18,7 @@ namespace Undani.Signature.Core
 
         public string Start()
         {
-            ValidateRevocation();
+            //ValidateRevocation();
 
             string content = "";
 
@@ -34,7 +34,7 @@ namespace Undani.Signature.Core
 
             JObject oJson = JObject.Parse(content);
 
-            Owner owner = GetOwner(ownerId);
+            Owner owner = GetOwner(Configuration, ownerId);
 
             if (owner.Signatory != string.Empty)
             {
@@ -61,26 +61,30 @@ namespace Undani.Signature.Core
             {
                 UserHelper userHelper = new UserHelper(Configuration, User);
 
-                string password = userHelper.GetPassword(RFC, owner.ContentFactorAuthentication);
+                Guid userId = Guid.Empty;
+
+                string password = userHelper.GetPassword(Reference, owner.ContentFactorAuthentication, ref userId);
 
                 if (password == "")
                 {
-                    password = GetCrc32(RFC + DateTimeNow.ToString("dd/MM/yyyy hh:mm:ss"));
+                    password = GetCrc32(Reference + DateTimeNow.ToString("dd/MM/yyyy hh:mm:ss"));
 
-                    return userHelper.CreateUser(ownerId, RFC, RFC, Name, content, owner.ContentFactorAuthentication, password);
+                    return userHelper.CreateUser(ownerId, owner.Roles, Reference, Reference, Name, content, owner.ContentFactorAuthentication, password);
                 }
                 else
                 {
-                    return new _UserLogin() { UserName = RFC, Password = password };
+                    userHelper.SetContent(userId, content);
+
+                    return new _UserLogin() { UserName = Reference, Password = password };
                 }
             }
 
             throw new Exception("S503");
         }
 
-        public Owner GetOwner(Guid ownerId)
+        public static Owner GetOwner(IConfiguration configuration, Guid ownerId)
         {
-            using (SqlConnection cn = new SqlConnection(Configuration["CnDbSignature"]))
+            using (SqlConnection cn = new SqlConnection(configuration["CnDbSignature"]))
             {
                 cn.Open();
                 using (SqlCommand cmd = new SqlCommand("usp_Get_Owner", cn))
@@ -90,10 +94,15 @@ namespace Undani.Signature.Core
                     cmd.Parameters.Add(new SqlParameter("@OwnerId", SqlDbType.UniqueIdentifier) { Value = ownerId });
                     cmd.Parameters.Add(new SqlParameter("@Signatory", SqlDbType.VarChar, 1000) { Direction = ParameterDirection.Output });
                     cmd.Parameters.Add(new SqlParameter("@ContentFactorAuthentication", SqlDbType.VarChar, 1000) { Direction = ParameterDirection.Output });
+                    cmd.Parameters.Add(new SqlParameter("@Roles", SqlDbType.VarChar, 1000) { Direction = ParameterDirection.Output });
 
                     cmd.ExecuteNonQuery();
 
-                    return new Owner() { Signatory = (string)cmd.Parameters["@Signatory"].Value, ContentFactorAuthentication = (string)cmd.Parameters["@ContentFactorAuthentication"].Value };
+                    return new Owner() {
+                        Signatory = (string)cmd.Parameters["@Signatory"].Value,
+                        ContentFactorAuthentication = (string)cmd.Parameters["@ContentFactorAuthentication"].Value,
+                        Roles = (string)cmd.Parameters["@ContentFactorAuthentication"].Value
+                    };
                 }
             }
         }

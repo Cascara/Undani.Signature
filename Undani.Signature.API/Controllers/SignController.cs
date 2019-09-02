@@ -39,6 +39,9 @@ namespace Undani.Signature.API.Controllers
                 if (publicKey == null)
                     throw new Exception("S501");
 
+                if (templates == null)
+                    templates = "";
+
                 using (MemoryStream memoryStream = new MemoryStream())
                 {
                     publicKey.CopyTo(memoryStream);
@@ -50,7 +53,7 @@ namespace Undani.Signature.API.Controllers
             catch (Exception ex)
             {
                 result.Error = ex.Message;
-            }          
+            }
 
             return result;
         }
@@ -163,6 +166,16 @@ namespace Undani.Signature.API.Controllers
             }
 
             return result;
+        }
+
+        #endregion
+
+        #region User
+        [HttpPost]
+        [Route("User/ContentExists")]
+        public bool LoginContentExists([FromForm]Guid ownerId, [FromForm]string content)
+        {
+            return new UserHelper(_configuration, null).ContentExists(ownerId, content);
         }
         #endregion
 

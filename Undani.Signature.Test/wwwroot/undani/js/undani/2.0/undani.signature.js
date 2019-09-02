@@ -10,8 +10,8 @@
             "S502": "The digital signature is empty.",
             "S503": "The access is invalid.",
             "S504": "Certificate is wrong.",
-            "S505": "The rfc number is wrong.",
-            "S506": "The curp number is wrong.",
+            "S505": "The reference number is wrong.",
+            "S506": "The population unique identifier is wrong.",
             "S507": "The name is wrong.",
             "S508": "The certificate has expired.",
             "S509": "The signer is not correct.",
@@ -114,13 +114,10 @@
                                     RaiseError("S004");
                                 });
                         }
-                        
-
                     }
                     else
                         RaiseError("S002");
                 }
-
             });
 
         function RaiseError(errorNumber) {

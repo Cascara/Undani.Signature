@@ -19,7 +19,6 @@ namespace Undani.Signature.Core.Resource
         public Stream DownloadWithTraceabilitySheet(string systemName, string codeVerify)
         {
             Stream result;
-
             using (var client = new HttpClient())
             {
                 client.DefaultRequestHeaders.Add("Authorization", User.Token);

@@ -23,7 +23,7 @@ namespace Undani.Signature.Core
             get { return _configuration; }
         }
 
-        public string GetJasonPathRFC(string elementId)
+        public string GetJasonPathReference(string elementId)
         {
             using (SqlConnection cn = new SqlConnection(Configuration["CnDbSignature"]))
             {

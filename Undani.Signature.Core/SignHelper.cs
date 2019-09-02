@@ -23,17 +23,17 @@ namespace Undani.Signature.Core
         
         public List<ContentSigned> Start(Guid procedureInstanceRefId, Guid elementInstanceRefId, List<string> templates)
         {
-            ValidateRevocation();
+            //ValidateRevocation();
 
             ActivityInstanceSignature activityInstanceSignature = new TrackingCall(Configuration, User).GetActivityInstanceSignature(elementInstanceRefId);
 
             JObject oJson = new FormCall(Configuration, User).GetJsonFormInstance(activityInstanceSignature.FormInstanceId);
 
-            string formJsonPathRFC = new FormHelper(Configuration, User).GetJasonPathRFC(activityInstanceSignature.ElementId);
+            string formJsonPathReference = new FormHelper(Configuration, User).GetJasonPathReference(activityInstanceSignature.ElementId);
 
-            if (formJsonPathRFC != string.Empty)
+            if (formJsonPathReference != string.Empty)
             {
-                JToken jToken = oJson.SelectToken(formJsonPathRFC);
+                JToken jToken = oJson.SelectToken(formJsonPathReference);
                 ValidateSignatory((string)jToken);
             }
             else
@@ -178,10 +178,10 @@ namespace Undani.Signature.Core
                         cmd.CommandType = CommandType.StoredProcedure;
                         cmd.Parameters.Add(new SqlParameter("@ProcedureInstanceRefId", SqlDbType.UniqueIdentifier) { Value = procedureInstanceRefId });
                         cmd.Parameters.Add(new SqlParameter("@Key", SqlDbType.VarChar, 50) { Value = key });
-                        cmd.Parameters.Add(new SqlParameter("@RFC", SqlDbType.VarChar, 13) { Value = RFC });
+                        cmd.Parameters.Add(new SqlParameter("@Reference", SqlDbType.VarChar, 50) { Value = Reference });
                         cmd.Parameters.Add(new SqlParameter("@SerialNumber", SqlDbType.VarChar, 100) { Value = SerialNumber });
                         cmd.Parameters.Add(new SqlParameter("@Name", SqlDbType.VarChar, 100) { Value = Name });
-                        cmd.Parameters.Add(new SqlParameter("@CURP", SqlDbType.VarChar, 18) { Value = CURP });
+                        cmd.Parameters.Add(new SqlParameter("@PopulationUniqueIdentifier", SqlDbType.VarChar, 100) { Value = PopulationUniqueIdentifier });
                         cmd.Parameters.Add(new SqlParameter("@DigitalSignature", SqlDbType.VarChar, 1000) { Value = digitalSignature });
                         cmd.Parameters.Add(new SqlParameter("@ElementInstanceRefId", SqlDbType.UniqueIdentifier) { Value = elementInstanceRefId });
                         cmd.Parameters.Add(new SqlParameter("@Date", SqlDbType.DateTime) { Value = DateTimeNow });
@@ -195,8 +195,8 @@ namespace Undani.Signature.Core
                                 {
                                     SerialNumber = reader.GetString(0),
                                     Name = reader.GetString(1),
-                                    RFC = reader.GetString(2),
-                                    CURP = reader.GetString(3),
+                                    Reference = reader.GetString(2),
+                                    PopulationUniqueIdentifier = reader.GetString(3),
                                     DigitalSignature = reader.GetString(4),
                                     Date = reader.GetDateTime(5)
                                 });
@@ -274,10 +274,10 @@ namespace Undani.Signature.Core
                         cmd.CommandType = CommandType.StoredProcedure;
                         cmd.Parameters.Add(new SqlParameter("@ProcedureInstanceRefId", SqlDbType.UniqueIdentifier) { Value = procedureInstanceRefId });
                         cmd.Parameters.Add(new SqlParameter("@Key", SqlDbType.VarChar, 50) { Value = key });
-                        cmd.Parameters.Add(new SqlParameter("@RFC", SqlDbType.VarChar, 13) { Value = RFC });
+                        cmd.Parameters.Add(new SqlParameter("@Reference", SqlDbType.VarChar, 50) { Value = Reference });
                         cmd.Parameters.Add(new SqlParameter("@SerialNumber", SqlDbType.VarChar, 100) { Value = SerialNumber });
                         cmd.Parameters.Add(new SqlParameter("@Name", SqlDbType.VarChar, 100) { Value = Name });
-                        cmd.Parameters.Add(new SqlParameter("@CURP", SqlDbType.VarChar, 18) { Value = CURP });
+                        cmd.Parameters.Add(new SqlParameter("@PopulationUniqueIdentifier", SqlDbType.VarChar, 100) { Value = PopulationUniqueIdentifier });
                         cmd.Parameters.Add(new SqlParameter("@DigitalSignature", SqlDbType.VarChar, 1000) { Value = digitalSignature });
                         cmd.Parameters.Add(new SqlParameter("@ElementInstanceRefId", SqlDbType.UniqueIdentifier) { Value = elementInstanceRefId });
                         cmd.Parameters.Add(new SqlParameter("@Date", SqlDbType.DateTime) { Value = DateTimeNow });
@@ -311,7 +311,7 @@ namespace Undani.Signature.Core
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.Add(new SqlParameter("@ProcedureInstanceRefId", SqlDbType.UniqueIdentifier) { Value = procedureInstanceRefId });
                     cmd.Parameters.Add(new SqlParameter("@Key", SqlDbType.VarChar, 50) { Value = key });
-                    cmd.Parameters.Add(new SqlParameter("@RFC", SqlDbType.VarChar, 13) { Value = RFC });
+                    cmd.Parameters.Add(new SqlParameter("@Reference", SqlDbType.VarChar, 50) { Value = Reference });
                     cmd.Parameters.Add(new SqlParameter("@Exists", SqlDbType.Bit) { Direction = ParameterDirection.Output });
 
                     cmd.ExecuteNonQuery();
@@ -386,7 +386,7 @@ namespace Undani.Signature.Core
                     .SetLocationCaption("Organización: ")
                     .SetPageRect(rect);
 
-                signer.SetFieldName(RFC);
+                signer.SetFieldName(Reference);
                 signer.SetSignDate(date);
 
                 IExternalSignature pks = new PrivateKeySignature(pk, digestAlgorithm);

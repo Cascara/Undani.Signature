@@ -12,14 +12,14 @@ namespace Undani.Signature.Core.Resource
 
         public IdentityCall(IConfiguration configuration, User user) : base(configuration, user) { }
 
-        public _UserIdentity CreateUser(Guid ownerId, string givenName, string rfc, string password)
+        public _UserIdentity CreateUser(Guid ownerId, string givenName, string reference, string password)
         {
-            string user = "{\"Email\":\"\",\"UserName\":\"[RFC]\",\"Password\":\"[Password]\",\"GivenName\":\"[GivenName]\",\"FamilyName\":\"\",\"Owners\":[\"[OwnerId]\"]}";
+            string user = "{\"Email\":\"\",\"UserName\":\"{{Reference}}\",\"Password\":\"{{Password}}\",\"GivenName\":\"{{GivenName}}\",\"FamilyName\":\"\",\"Owners\":[\"{{OwnerId}}\"]}";
 
-            user = user.Replace("[RFC]", rfc);
-            user = user.Replace("[GivenName]", givenName);
-            user = user.Replace("[Password]", password);
-            user = user.Replace("[OwnerId]", ownerId.ToString());
+            user = user.Replace("{{Reference}}", reference);
+            user = user.Replace("{{GivenName}}", givenName);
+            user = user.Replace("{{Password}}", password);
+            user = user.Replace("{{OwnerId}}", ownerId.ToString());
 
             using (var client = new HttpClient())
             {
@@ -34,7 +34,7 @@ namespace Undani.Signature.Core.Resource
 
                 _UserIdentity _userIdentity = Newtonsoft.Json.JsonConvert.DeserializeObject<_UserIdentity>(response.Content.ReadAsStringAsync().Result);
                 _userIdentity.OwnerId = ownerId;
-                _userIdentity.RFC = rfc;
+                _userIdentity.Reference = reference;
 
                 return _userIdentity;
             }

@@ -87,6 +87,27 @@
                     else
                         signature.trigger("error", settings.loginFail);
                 },
+                ContentExists: function (content) {
+                    var formData = new FormData();
+                    formData.append("ownerId", settings.ownerId);
+                    formData.append("content", JSON.stringify(content));
+
+                    $.ajax({
+                        url: settings.host + "/Sign/User/ContentExists",
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                        enctype: 'multipart/form-data',
+                        type: 'POST',
+                        timeout: 1280000
+                    })
+                        .done(function (exists) {
+                            signature.trigger("contentexists", exists);
+                        })
+                        .fail(function (jqXHR, textStatus, errorThrown) {
+                            signature.trigger("error", settings.loginFail);
+                        });
+                },
                 User: function () {
                     return _user;
                 }

@@ -51,9 +51,10 @@
             <div class="form-group">
                 <label class="col-sm-5 control-label" for="Email">RFC<span class="form-text form-text-error hidden" rel="Email">*</span>:</label>
                 <div class="col-sm-7">
-                    <input id="RFC" type="text" placeholder="RFC" class="form-control" required data-val="true" data-val-required="El número es requerido." value="HEGT7610034S2" />
+                    <input id="Reference" type="text" placeholder="Reference" class="form-control" required data-val="true" data-val-required="El número es requerido." value="HEGT7610034S2" />
                 </div>
             </div>
+
 
             <div class="form-group">
                 <label class="col-sm-5 control-label" for="password">Contraseña de e.Firma<span class="form-text form-text-error hidden" rel="Password">*</span>:</label>
@@ -81,8 +82,12 @@
                 <input id="Password" type="password" asp-for="Password" placeholder="Contraseña" class="form-control" required />
             </div>
 
-            <button id="login" type="button" class="btn btn-primary pull-right">Entrar</button>
-            <br />
+            <div class="form-group">
+                <button id="login" type="button" class="btn btn-primary pull-right">Entrar</button>&nbsp;
+
+                <button id="exists" type="button" class="btn btn-primary pull-right">Existe</button>
+            </div>
+                <br />
         </form>
     </div>
 </div>
@@ -137,6 +142,37 @@
                 publicKey: 'publicKey',
                 privateKey: 'privateKey',
                 password: 'pwd'
+            });
+
+            $('#exists').click(function (e) {
+                loginForm.ContentExists({
+                    "codigoPostalCTField": "00000",
+                    "domicilioCTField": "ZARAGOZA 33 SAN PEDRO DE LAS COLONIAS CE",
+                    "localidadCTField": "SAN PEDRO COAHUILA DE ZARAGOZA",
+                    "municipioCTField": "A39",
+                    "nombreCTField": "SERGIO ANTONIO DE LA FUENTE RAMIREZ",
+                    "numeroRegistroPatronalField": null,
+                    "registroPatronalField": "A3912602101",
+                    "rfcCTField": "FURS9212231G4",
+                    "totalEventualesField": 0,
+                    "totalEventualesFieldSpecified": true,
+                    "totalEventualesCampoField": 0,
+                    "totalEventualesCampoFieldSpecified": true,
+                    "totalEventualesUrbanosField": 0,
+                    "totalEventualesUrbanosFieldSpecified": true,
+                    "totalPermanentesField": 12,
+                    "totalPermanentesFieldSpecified": true,
+                    "PropertyChanged": null
+                });
+            });
+
+            $(loginForm).on("contentexists", function (event, exists) {
+                if (exists) {
+                    alert('Existe');
+                } else {
+                    alert('No existe');
+                }
+                
             });
 
             $('#login').click(function (e) {
