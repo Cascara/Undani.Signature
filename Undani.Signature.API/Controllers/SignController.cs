@@ -230,7 +230,7 @@ namespace Undani.Signature.API.Controllers
                     payload = JWToken.TokenDecode(token);
                     user = new User() { Id = Guid.Parse(payload.UserId), Name = payload.UserName, Token = authHeader };
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     throw new Exception("S503");
                 }

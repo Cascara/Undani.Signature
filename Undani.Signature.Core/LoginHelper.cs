@@ -3,7 +3,6 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
@@ -18,7 +17,7 @@ namespace Undani.Signature.Core
 
         public string Start()
         {
-            //ValidateRevocation();
+            ValidateRevocation();
 
             string content = "";
 
@@ -41,16 +40,16 @@ namespace Undani.Signature.Core
                 JToken jToken = oJson.SelectToken(owner.Signatory);
                 ValidateSignatory((string)jToken);
             }
-            
+
             if (owner.ContentFactorAuthentication != string.Empty)
             {
                 dynamic contentFactorAuthentication = JsonConvert.DeserializeObject<ExpandoObject>(owner.ContentFactorAuthentication, new ExpandoObjectConverter());
 
                 IDictionary<string, object> dicContentFactorAuthentication = contentFactorAuthentication;
-                
+
                 foreach (string key in dicContentFactorAuthentication.Keys)
                 {
-                    owner.ContentFactorAuthentication = owner.ContentFactorAuthentication.Replace((string)dicContentFactorAuthentication[key],(string)oJson.SelectToken(dicContentFactorAuthentication[key].ToString().Replace("[", "").Replace("]", "")));
+                    owner.ContentFactorAuthentication = owner.ContentFactorAuthentication.Replace((string)dicContentFactorAuthentication[key], (string)oJson.SelectToken(dicContentFactorAuthentication[key].ToString().Replace("[[", "").Replace("]]", "")));
                 }
             }
 
@@ -98,10 +97,11 @@ namespace Undani.Signature.Core
 
                     cmd.ExecuteNonQuery();
 
-                    return new Owner() {
+                    return new Owner()
+                    {
                         Signatory = (string)cmd.Parameters["@Signatory"].Value,
                         ContentFactorAuthentication = (string)cmd.Parameters["@ContentFactorAuthentication"].Value,
-                        Roles = (string)cmd.Parameters["@ContentFactorAuthentication"].Value
+                        Roles = (string)cmd.Parameters["@Roles"].Value
                     };
                 }
             }

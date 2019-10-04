@@ -95,7 +95,9 @@ namespace Undani.Signature.Core
 
         public string SerialNumber { get; private set; }
 
-        public int CertifyingAuthority { get; private set; }
+        public string CertifyingRegistrationAuthority { get; private set; }
+
+        public string CertifyingAuthority { get; private set; }
 
         private void SetCertificateProperties()
         {
@@ -138,7 +140,7 @@ namespace Undani.Signature.Core
 
             SerialNumber = GetSerialNumber();
 
-            CertifyingAuthority = GetCertifyingAuthority(); 
+            SetCertifyingAuthorities(); 
 
         }
 
@@ -175,7 +177,7 @@ namespace Undani.Signature.Core
             return result;
         }
 
-        private int GetCertifyingAuthority()
+        private void SetCertifyingAuthorities()
         {
             if (SerialNumber == "")
                 throw new Exception("S515");
@@ -199,13 +201,19 @@ namespace Undani.Signature.Core
                     flag = true;
             }
 
-            return int.Parse(result.Substring(6, 6));
+            CertifyingRegistrationAuthority = result.Substring(0, 6);
+
+            CertifyingAuthority = result.Substring(6, 6);
         }
+
 
         public void ValidateRevocation()
         {
-            Revocation revocation = new Revocation(Configuration["DataOcspUri"], Configuration["ApiKeyVault"], Configuration["DataOcspStoreName"] + CertifyingAuthority.ToString(), Configuration["DataOcspIssuerStoreName"] + CertifyingAuthority.ToString(), Configuration["DataOcspClientId"], Configuration["DataOcspClientSecret"]);
-            revocation.Validate(PublicKey);
+            if (int.Parse(Environment.GetEnvironmentVariable("OCSP_ON")) == 1)
+            {
+                Revocation revocation = new Revocation(Configuration["DataOcspUri"], Configuration["ApiKeyVault"], Configuration["DataOcspStoreName"] + int.Parse(CertifyingAuthority).ToString(), Configuration["DataOcspIssuerStoreName"] + CertifyingAuthority.ToString(), Configuration["DataOcspClientId"], Configuration["DataOcspClientSecret"]);
+                revocation.Validate(PublicKey);
+            }
         }
 
         public byte[] GetHash(string text)

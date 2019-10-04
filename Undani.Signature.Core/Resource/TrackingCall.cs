@@ -20,7 +20,7 @@ namespace Undani.Signature.Core.Resource
             {
                 client.DefaultRequestHeaders.Add("Authorization", User.Token);
 
-                string url = Configuration["ApiTracking"] + "/Execution/User/Create?userId=" + userId.ToString() + "&ownerId=" + ownerId.ToString() + "&reference=" + reference + "&roles" + roles + "&userName=" + userName + "&givenName=" + givenName;
+                string url = Configuration["ApiTracking"] + "/Execution/User/Create?userId=" + userId.ToString() + "&ownerId=" + ownerId.ToString() + "&reference=" + reference + "&roles=" + roles + "&userName=" + userName + "&givenName=" + givenName;
 
                 var formParameters = new List<KeyValuePair<string, string>>();
                 formParameters.Add(new KeyValuePair<string, string>("content", content));

@@ -13,7 +13,8 @@
       "launchBrowser": true,
       "launchUrl": "api/values",
       "environmentVariables": {
-        "CONFIGURATION_ENVIRONMENT": "5F14190F-3493-4A18-AB6E-22F3639263C2",
+        "OCSP_ON": "0",
+        "CONFIGURATION_ENVIRONMENT": "496880EB-25BD-4950-A57B-E2F00AE309C8",
         "CONFIGURATION_SYSTEM": "2E5EEC3B-0C62-458D-B4AF-B7D81971CEA8",
         "ASPNETCORE_ENVIRONMENT": "Development"
       }

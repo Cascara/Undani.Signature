@@ -1,12 +1,8 @@
 ﻿using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 using System;
 using System.Collections.Generic;
-using System.Dynamic;
-using System.Net;
-using System.Net.Http;
-using System.Text;
+using System.Data;
+using System.Data.SqlClient;
 
 namespace Undani.Signature.Core.Resource
 {
@@ -14,29 +10,46 @@ namespace Undani.Signature.Core.Resource
     {
         public TemplateCall(IConfiguration configuration, User user) : base(configuration, user) { }
 
-        public List<ActivityInstanceDocumentSigned> SignatureGraphicRepresentation(Guid systemName, string originalName, Guid environmentId, string template, string xml)
+        public List<ActivityInstanceDocumentSigned> SignatureGraphicRepresentation(Guid procedureInstanceRefId, string key, Guid systemName, string originalName, string template, string xml)
         {
-            string url = Configuration["ApiTemplate"] + "/Excecution/Template/SignatureGraphicRepresentation";
 
-            using (var client = new HttpClient())
+            dynamic message = new
             {
-                client.DefaultRequestHeaders.Add("Authorization", User.Token);
+                Action = "GraphicRepresentation",
+                SAID = Guid.Empty,
+                MessageBody = new
+                {
+                    OriginalName = originalName,
+                    SystemName = systemName,
+                    DocumentType = template,
+                    Xml = xml
+                }
+            };
 
-                string jsonFormInstanceSign = JsonConvert.SerializeObject(new { SystemName = systemName, OriginalName = originalName, DocumentType = template, Xml = xml });
-                
-                StringContent stringContent = new StringContent(jsonFormInstanceSign, Encoding.UTF8, "application/json");
+            var queueClient = ClientBus.Bus.Connect(Configuration["CnSrvBus"], "template");
 
-                HttpResponseMessage httpResponseMessage = client.PostAsync(url, stringContent).Result;
+            queueClient.Send(message);
 
-                if (httpResponseMessage.StatusCode != HttpStatusCode.OK)
-                    throw new Exception("S905");
+            using (SqlConnection cn = new SqlConnection(Configuration["CnDbSignature"]))
+            {
+                cn.Open();
 
-                string json = httpResponseMessage.Content.ReadAsStringAsync().Result;
+                using (SqlCommand cmd = new SqlCommand("usp_Set_DocumentGraphicRepresentationMessage", cn) { CommandType = CommandType.StoredProcedure })
+                {
+                    cmd.Parameters.Add(new SqlParameter("@ProcedureInstanceRefId", SqlDbType.UniqueIdentifier) { Value = procedureInstanceRefId });
+                    cmd.Parameters.Add(new SqlParameter("@Key", SqlDbType.VarChar, 50) { Value = key });
+                    cmd.Parameters.Add(new SqlParameter("@GraphicRepresentationMessage", SqlDbType.VarChar, -1) { Value = message });
 
-                List<ActivityInstanceDocumentSigned> response = JsonConvert.DeserializeObject<List<ActivityInstanceDocumentSigned>>(json);
-
-                return response;
+                    cmd.ExecuteNonQuery();
+                }
             }
+
+            List<ActivityInstanceDocumentSigned> response = new List<ActivityInstanceDocumentSigned>();
+
+            response.Add(new ActivityInstanceDocumentSigned() { OriginalName = originalName + ".pdf", SystemName = systemName.ToString() + ".pdf", HashCode = "" });
+            response.Add(new ActivityInstanceDocumentSigned() { OriginalName = originalName + ".xml", SystemName = systemName.ToString() + ".xml", HashCode = "" });
+
+            return response;
         }
     }
 }

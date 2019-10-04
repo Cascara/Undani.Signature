@@ -12,7 +12,6 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.IO;
-using System.Text;
 using Undani.Signature.Core.Resource;
 
 namespace Undani.Signature.Core
@@ -20,10 +19,10 @@ namespace Undani.Signature.Core
     public class SignHelper : Certificate
     {
         public SignHelper(IConfiguration configuration, User user, Guid environmentId, byte[] publicKey) : base(configuration, user, environmentId, publicKey) { }
-        
+
         public List<ContentSigned> Start(Guid procedureInstanceRefId, Guid elementInstanceRefId, List<string> templates)
         {
-            //ValidateRevocation();
+            ValidateRevocation();
 
             ActivityInstanceSignature activityInstanceSignature = new TrackingCall(Configuration, User).GetActivityInstanceSignature(elementInstanceRefId);
 
@@ -42,7 +41,8 @@ namespace Undani.Signature.Core
             List<ContentSigned> signResults = new List<ContentSigned>();
             foreach (ElementSignature elementSignature in activityInstanceSignature.ElementsSignatures)
             {
-                if (templates.Contains(elementSignature.Template)) {
+                if (templates.Contains(elementSignature.Template))
+                {
                     switch (elementSignature.ElementSignatureTypeId)
                     {
                         case 1:
@@ -186,7 +186,7 @@ namespace Undani.Signature.Core
                         cmd.Parameters.Add(new SqlParameter("@ElementInstanceRefId", SqlDbType.UniqueIdentifier) { Value = elementInstanceRefId });
                         cmd.Parameters.Add(new SqlParameter("@Date", SqlDbType.DateTime) { Value = DateTimeNow });
 
-                        DocumentSigned documentSigned = new DocumentSigned() { Id = document.FormInstanceId, EnvironmentId = document.EnvironmentId, ContentSigned = document.Content, Created = document.Created};
+                        DocumentSigned documentSigned = new DocumentSigned() { Id = document.FormInstanceId, EnvironmentId = document.EnvironmentId, ContentSigned = document.Content, Created = document.Created };
                         using (SqlDataReader reader = cmd.ExecuteReader())
                         {
                             while (reader.Read())
@@ -210,16 +210,16 @@ namespace Undani.Signature.Core
                             else if (template.Contains("OnlyProcedure_"))
                             {
                                 string xml = new Xml<DocumentSigned>().Serialize(documentSigned);
-                                List<ActivityInstanceDocumentSigned> activityInstanceDocumentsSigned = new TemplateCall(Configuration, User).SignatureGraphicRepresentation(document.SystemName, document.OriginalName, document.EnvironmentId, template.Replace("OnlyProcedure_",""), xml);
+                                List<ActivityInstanceDocumentSigned> activityInstanceDocumentsSigned = new TemplateCall(Configuration, User).SignatureGraphicRepresentation(procedureInstanceRefId, key, document.SystemName, document.OriginalName, template.Replace("OnlyProcedure_", ""), xml);
                                 valid = new TrackingCall(Configuration, User).SetProcedureInstanceDocumentsSigned(procedureInstanceRefId, key, activityInstanceDocumentsSigned);
                             }
                             else
                             {
                                 string xml = new Xml<DocumentSigned>().Serialize(documentSigned);
-                                List<ActivityInstanceDocumentSigned> activityInstanceDocumentsSigned = new TemplateCall(Configuration, User).SignatureGraphicRepresentation(document.SystemName, document.OriginalName, document.EnvironmentId, template, xml);
+                                List<ActivityInstanceDocumentSigned> activityInstanceDocumentsSigned = new TemplateCall(Configuration, User).SignatureGraphicRepresentation(procedureInstanceRefId, key, document.SystemName, document.OriginalName, template, xml);
                                 valid = new TrackingCall(Configuration, User).SetActivityInstanceDocumentsSigned(elementInstanceRefId, key, activityInstanceDocumentsSigned);
                             }
-                            
+
                         }
                     }
                 }
@@ -231,6 +231,7 @@ namespace Undani.Signature.Core
 
             return valid;
         }
+
 
         public bool SetSignPDF(Guid procedureInstanceRefId, Guid elementInstanceRefId, string key, string template, byte[] privateKeyBytes, char[] password, string digitalSignature)
         {
@@ -255,7 +256,7 @@ namespace Undani.Signature.Core
                 {
                     return false;
                 }
-                
+
                 AddSign(
                     document.SystemName.ToString() + ".pdf",
                     chain,
@@ -392,9 +393,10 @@ namespace Undani.Signature.Core
                 IExternalSignature pks = new PrivateKeySignature(pk, digestAlgorithm);
 
                 signer.SignDetached(pks, chain, null, null, null, 0, subfilter);
-            }            
+            }
 
             boxCall.Upload(systemName, fileTemp);
         }
+
     }
 }

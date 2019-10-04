@@ -6,7 +6,9 @@
 
   <ItemGroup>
     <PackageReference Include="itext7" Version="7.1.2" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
+    <PackageReference Include="Undani.Bus" Version="1.0.2" />
+    <PackageReference Include="Undani.Core.Extensions.NETCore" Version="1.0.0" />
   </ItemGroup>
 
   <ItemGroup>
