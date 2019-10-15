@@ -287,7 +287,7 @@ namespace Undani.Signature.Core
 
                         List<ActivityInstanceDocumentSigned> activityInstanceDocumentsSigned = new List<ActivityInstanceDocumentSigned>();
 
-                        activityInstanceDocumentsSigned.Add(new ActivityInstanceDocumentSigned() { SystemName = document.SystemName.ToString() + ".pdf", OriginalName = document.OriginalName, HashCode = "" });
+                        activityInstanceDocumentsSigned.Add(new ActivityInstanceDocumentSigned() { SystemName = document.SystemName.ToString() + ".pdf", OriginalName = document.OriginalName, HashCode = "", Created = true });
 
                         valid = new TrackingCall(Configuration, User).SetActivityInstanceDocumentsSigned(elementInstanceRefId, key, activityInstanceDocumentsSigned);
                     }

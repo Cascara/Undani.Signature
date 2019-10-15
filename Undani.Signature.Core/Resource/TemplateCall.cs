@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -38,7 +39,7 @@ namespace Undani.Signature.Core.Resource
                 {
                     cmd.Parameters.Add(new SqlParameter("@ProcedureInstanceRefId", SqlDbType.UniqueIdentifier) { Value = procedureInstanceRefId });
                     cmd.Parameters.Add(new SqlParameter("@Key", SqlDbType.VarChar, 50) { Value = key });
-                    cmd.Parameters.Add(new SqlParameter("@GraphicRepresentationMessage", SqlDbType.VarChar, -1) { Value = message });
+                    cmd.Parameters.Add(new SqlParameter("@GraphicRepresentationMessage", SqlDbType.VarChar, -1) { Value = JsonConvert.SerializeObject(message) });
 
                     cmd.ExecuteNonQuery();
                 }
@@ -46,8 +47,8 @@ namespace Undani.Signature.Core.Resource
 
             List<ActivityInstanceDocumentSigned> response = new List<ActivityInstanceDocumentSigned>();
 
-            response.Add(new ActivityInstanceDocumentSigned() { OriginalName = originalName + ".pdf", SystemName = systemName.ToString() + ".pdf", HashCode = "" });
-            response.Add(new ActivityInstanceDocumentSigned() { OriginalName = originalName + ".xml", SystemName = systemName.ToString() + ".xml", HashCode = "" });
+            response.Add(new ActivityInstanceDocumentSigned() { OriginalName = originalName + ".pdf", SystemName = systemName.ToString() + ".pdf", HashCode = "", Created = false });
+            response.Add(new ActivityInstanceDocumentSigned() { OriginalName = originalName + ".xml", SystemName = systemName.ToString() + ".xml", HashCode = "", Created = true });
 
             return response;
         }
