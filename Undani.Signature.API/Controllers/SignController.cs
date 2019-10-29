@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using System;
+using System.IO;
+using System.Linq;
 using Undani.JWT;
 using Undani.Signature.Core;
 using Undani.Signature.Core.Infra;
@@ -60,7 +55,7 @@ namespace Undani.Signature.API.Controllers
 
         [HttpPost]
         [Route("Text/End")]
-        public Result SetSignText([FromForm]Guid procedureInstanceRefId, [FromForm]Guid elementInstanceRefId, [FromForm] string key, [FromForm] string template, IFormFile publicKey, [FromForm]string digitalSignature)
+        public Result SetSignText([FromForm]Guid procedureInstanceRefId, [FromForm]Guid elementInstanceRefId, [FromForm] string key, [FromForm] string template, [FromForm] string represented, IFormFile publicKey, [FromForm]string digitalSignature)
         {
             Result result = new Result();
             try
@@ -77,7 +72,7 @@ namespace Undani.Signature.API.Controllers
                 {
                     publicKey.CopyTo(memoryStream);
                     var publicKeyBytes = memoryStream.ToArray();
-                    result.Value = new SignHelper(_configuration, user, Guid.Empty, publicKeyBytes).SetSignText(procedureInstanceRefId, elementInstanceRefId, key, template, digitalSignature);
+                    result.Value = new SignHelper(_configuration, user, Guid.Empty, publicKeyBytes).SetSignText(procedureInstanceRefId, elementInstanceRefId, key, template, represented, digitalSignature);
                 }
 
             }
@@ -91,7 +86,7 @@ namespace Undani.Signature.API.Controllers
 
         [HttpPost]
         [Route("PDF/End")]
-        public Result SetSignPDF([FromForm]Guid procedureInstanceRefId, [FromForm]Guid elementInstanceRefId, [FromForm] string key, [FromForm] string template, IFormFile publicKey, IFormFile privateKey, [FromForm] string pk, [FromForm]string digitalSignature)
+        public Result SetSignPDF([FromForm]Guid procedureInstanceRefId, [FromForm]Guid elementInstanceRefId, [FromForm] string key, [FromForm] string template, [FromForm] string represented, IFormFile publicKey, IFormFile privateKey, [FromForm] string pk, [FromForm]string digitalSignature)
         {
             Result result = new Result();
             try
@@ -114,7 +109,7 @@ namespace Undani.Signature.API.Controllers
                 {
                     publicKey.CopyTo(memoryStream);
                     var publicKeyBytes = memoryStream.ToArray();
-                    result.Value = new SignHelper(_configuration, user, Guid.Empty, publicKeyBytes).SetSignPDF(procedureInstanceRefId, elementInstanceRefId, key, template, msPrivateKey.ToArray(), pk.ToCharArray(), digitalSignature);
+                    result.Value = new SignHelper(_configuration, user, Guid.Empty, publicKeyBytes).SetSignPDF(procedureInstanceRefId, elementInstanceRefId, key, template, represented, msPrivateKey.ToArray(), pk.ToCharArray(), digitalSignature);
                 }
 
             }
@@ -238,7 +233,7 @@ namespace Undani.Signature.API.Controllers
 
             if (user.Id == Guid.Empty)
                 throw new Exception("S503");
-            
+
             user = new UserHelper(_configuration, user).User;
 
             return user;

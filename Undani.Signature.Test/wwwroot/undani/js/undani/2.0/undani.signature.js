@@ -76,7 +76,7 @@
 
         signature = $.extend(this,
             {
-                Sign: function (procedureInstanceRefId, elementInstanceRefId, templates) {
+                Sign: function (procedureInstanceRefId, elementInstanceRefId, templates, represented) {
                     lastErrorNumber = "";
                     var isRequired = true;
 
@@ -98,7 +98,7 @@
                     if (isRequired) {
 
                         if (token !== "") {
-                            SignStart(procedureInstanceRefId, elementInstanceRefId, templates);
+                            SignStart(procedureInstanceRefId, elementInstanceRefId, templates, represented);
                         } else {
                             $.ajax({
                                 cache: false,
@@ -108,7 +108,7 @@
                             })
                                 .done(function (result) {
                                     token = result.token;
-                                    SignStart(procedureInstanceRefId, elementInstanceRefId, templates);
+                                    SignStart(procedureInstanceRefId, elementInstanceRefId, templates, represented);
                                 })
                                 .fail(function (jqXHR, textStatus, errorThrown) {
                                     RaiseError("S004");
@@ -128,7 +128,7 @@
             }
         }
 
-        function SignStart(procedureInstanceRefId, elementInstanceRefId, templates) {
+        function SignStart(procedureInstanceRefId, elementInstanceRefId, templates, represented) {
             var formData = new FormData();
             var publicKey = $("#" + settings.publicKey)[0].files[0];
             var privateKey = $("#" + settings.privateKey)[0].files[0];
@@ -162,10 +162,10 @@
                                 switch (resultSignature.value[j].type) {
 
                                     case 1:
-                                        SignTextEnd(publicKey, privateKey, password, procedureInstanceRefId, elementInstanceRefId, resultSignature.value[j].content, resultSignature.value[j].key, resultSignature.value[j].template);
+                                        SignTextEnd(publicKey, privateKey, password, procedureInstanceRefId, elementInstanceRefId, resultSignature.value[j].content, resultSignature.value[j].key, resultSignature.value[j].template, represented);
                                         break;
                                     case 2:
-                                        SignPDFEnd(publicKey, privateKey, password, procedureInstanceRefId, elementInstanceRefId, resultSignature.value[j].content, resultSignature.value[j].key, resultSignature.value[j].template);
+                                        SignPDFEnd(publicKey, privateKey, password, procedureInstanceRefId, elementInstanceRefId, resultSignature.value[j].content, resultSignature.value[j].key, resultSignature.value[j].template, represented);
                                         break;
                                 }
                             }
@@ -183,7 +183,7 @@
                 });
         }
 
-        function SignTextEnd(publicKey, privateKey, password, procedureInstanceRefId, elementInstanceRefId, content, key, template) {            
+        function SignTextEnd(publicKey, privateKey, password, procedureInstanceRefId, elementInstanceRefId, content, key, template, represented) {            
             Signature.Crypto.SignAsync(privateKey, password, content, "sha256")
                 .done(function (result) {
                     if (result.error) {
@@ -196,6 +196,7 @@
                     formData.append("elementInstanceRefId", elementInstanceRefId);
                     formData.append("key", key);
                     formData.append("template", template);
+                    formData.append("represented", represented);
                     formData.append("publicKey", publicKey);
                     formData.append("digitalSignature", Signature.Crypto.ArrayToBase64(result.signatureAsArray));
 
@@ -231,7 +232,7 @@
                 });
         }
 
-        function SignPDFEnd(publicKey, privateKey, password, procedureInstanceRefId, elementInstanceRefId, content, key, template) {
+        function SignPDFEnd(publicKey, privateKey, password, procedureInstanceRefId, elementInstanceRefId, content, key, template, represented) {
             Signature.Crypto.SignAsync(privateKey, password, content, "sha256")
                 .done(function (result) {
                     if (result.error) {
@@ -244,6 +245,7 @@
                     formData.append("elementInstanceRefId", elementInstanceRefId);
                     formData.append("key", key);
                     formData.append("template", template);
+                    formData.append("represented", represented);
                     formData.append("publicKey", publicKey);
                     formData.append("privateKey", privateKey);
                     formData.append("pk", password);

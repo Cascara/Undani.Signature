@@ -89,6 +89,8 @@ namespace Undani.Signature.Core
 
         public string Name { get; private set; }
 
+        public DateTime BeginningDate { get; private set; }
+
         public DateTime ExpirationDate { get; private set; }
 
         public DateTime DateTimeNow { get; private set; }
@@ -130,6 +132,8 @@ namespace Undani.Signature.Core
             Name = result["O"];
             if (Name.Length == 0)
                 throw new Exception("S507");
+
+            BeginningDate = DateTime.Parse(X509PublicKey.GetEffectiveDateString());
 
             ExpirationDate = DateTime.Parse(X509PublicKey.GetExpirationDateString());
 
