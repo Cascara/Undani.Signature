@@ -27,10 +27,10 @@
 
   <ItemGroup>
     <Reference Include="Undani.Configuration">
-      <HintPath>..\..\DLL\Undani.Configuration.dll</HintPath>
+      <HintPath>..\..\..\DROPBOX\Dropbox\Undani\DLL\Undani.Configuration.dll</HintPath>
     </Reference>
     <Reference Include="Undani.JWT.NetCore">
-      <HintPath>..\..\DLL\Undani.JWT.NetCore.dll</HintPath>
+      <HintPath>..\..\..\DROPBOX\Dropbox\Undani\DLL\Undani.JWT.NetCore.dll</HintPath>
     </Reference>
   </ItemGroup>
 

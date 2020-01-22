@@ -4,7 +4,7 @@ using Newtonsoft.Json.Converters;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using System.Dynamic;
 using System.Security.Claims;
 using System.Security.Cryptography;
@@ -246,6 +246,21 @@ namespace Undani.Signature.Core
             return esValida;
         }
 
+        public string GetPKCS7()
+        {
+            X509Certificate2Collection collection = new X509Certificate2Collection();
+
+            collection.Add(new X509Certificate2(PublicKey));
+
+            StringBuilder builder = new StringBuilder();
+            builder.Append("-----BEGIN PKCS7-----");
+            builder.Append(
+                Convert.ToBase64String(collection.Export(X509ContentType.Pkcs7)));
+            builder.Append("-----END PKCS7-----");
+
+            return builder.ToString();
+        }
+
         public string PublicKeySerialNumber(string publicKeySerialNumber)
         {
             string result = "";
@@ -304,12 +319,12 @@ namespace Undani.Signature.Core
             if (reference != "")
             {
                 if (reference.ToUpper() != Reference)
-                    throw new Exception("S509");
+                    throw new Exception("S509-2 " + reference.ToUpper());
             }
             else
             {
                 if (User.Reference != Reference)
-                    throw new Exception("S509");
+                    throw new Exception("S509-1 " + User.Reference);
             }
         }
     }

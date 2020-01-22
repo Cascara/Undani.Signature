@@ -38,6 +38,9 @@ namespace Undani.Signature
         [XmlElement("Date")]
         public Field Date;
 
+        [XmlElement("Certificate")]
+        public Field Certificate;
+
         public Sign() { }
 
         public Sign(
@@ -50,7 +53,8 @@ namespace Undani.Signature
             string populationUniqueIdentifier,
             string represented,
             string digitalSignature,
-            DateTime date
+            DateTime date,
+            string certificate
         )
         {
             dynamic dySettings = JsonConvert.DeserializeObject<ExpandoObject>(settings, new ExpandoObjectConverter());
@@ -64,6 +68,7 @@ namespace Undani.Signature
             Represented = new Field { Value = represented, Description = dySettings.Sign.Represented };
             DigitalSignature = new Field { Value = digitalSignature, Description = dySettings.Sign.DigitalSignature };
             Date = new Field { Value = date.ToString("G", new CultureInfo("es-ES")), Description = dySettings.Sign.Date };
+            Certificate = new Field { Value = certificate, Description = dySettings.Sign.Certificate };
         }
     }
 }

@@ -6,6 +6,8 @@
 
   <ItemGroup>
     <PackageReference Include="itext7" Version="7.1.2" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="1.1.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="2.0.2" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
     <PackageReference Include="Undani.Bus" Version="1.0.2" />
     <PackageReference Include="Undani.Core.Extensions.NETCore" Version="1.0.0" />
@@ -17,17 +19,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="Microsoft.Extensions.Configuration.Abstractions">
-      <HintPath>C:\Program Files\dotnet\sdk\NuGetFallbackFolder\microsoft.extensions.configuration.abstractions\2.0.2\lib\netstandard2.0\Microsoft.Extensions.Configuration.Abstractions.dll</HintPath>
-    </Reference>
     <Reference Include="Microsoft.WindowsAzure.Storage">
-      <HintPath>C:\Program Files\dotnet\sdk\NuGetFallbackFolder\windowsazure.storage\8.1.4\lib\netstandard1.3\Microsoft.WindowsAzure.Storage.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Data.SqlClient">
-      <HintPath>C:\Program Files\dotnet\sdk\NuGetFallbackFolder\system.data.sqlclient\4.4.0\ref\netstandard2.0\System.Data.SqlClient.dll</HintPath>
+      <HintPath>..\..\..\DROPBOX\Dropbox\Undani\DLL\Microsoft.WindowsAzure.Storage.dll</HintPath>
     </Reference>
     <Reference Include="Undani.JWT.NetCore">
-      <HintPath>..\..\DLL\Undani.JWT.NetCore.dll</HintPath>
+      <HintPath>..\..\..\DROPBOX\Dropbox\Undani\DLL\Undani.JWT.NetCore.dll</HintPath>
     </Reference>
   </ItemGroup>
 

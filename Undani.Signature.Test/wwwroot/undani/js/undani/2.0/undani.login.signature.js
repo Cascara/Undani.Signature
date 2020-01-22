@@ -85,7 +85,7 @@
 
                     }
                     else
-                        signature.trigger("error", settings.loginFail);
+                        signature.trigger("error", "Ingrese los campos mínimos requeridos.");
                 },
                 ContentExists: function (content) {
                     var formData = new FormData();
@@ -105,7 +105,7 @@
                             signature.trigger("contentexists", exists);
                         })
                         .fail(function (jqXHR, textStatus, errorThrown) {
-                            signature.trigger("error", settings.loginFail);
+                            signature.trigger("error", errorThrown);
                         });
                 },
                 User: function () {
@@ -117,7 +117,7 @@
             Signature.Crypto.SignAsync(privateKey, password, signNumber, "sha256")
                 .done(function (result) {
                     if (result.error) {
-                        signature.trigger("error", settings.loginFail);
+                        signature.trigger("error", " Lo sentimos, su contraseña no es correcta.");
                         return;
                     }
 
@@ -141,11 +141,11 @@
                             signature.trigger("done", user);
                         })
                         .fail(function (jqXHR, textStatus, errorThrown) {
-                            signature.trigger("error", settings.loginFail);
+                            signature.trigger("error", "Lo sentimos, la llave no corresponde al certificado que proporcionó.");
                         });
                 })
                 .fail(function (result) {
-                    signature.trigger("error", settings.loginFail);
+                    signature.trigger("error", "Lo sentimos, su contraseña no es correcta.");
                 });
         }
 

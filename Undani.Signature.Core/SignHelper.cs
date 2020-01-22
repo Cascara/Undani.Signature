@@ -10,7 +10,7 @@ using Org.BouncyCastle.X509;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using System.IO;
 using System.Text;
 using Undani.Signature.Core.Resource;
@@ -217,6 +217,7 @@ namespace Undani.Signature.Core
                         cmd.Parameters.Add(new SqlParameter("@DigitalSignature", SqlDbType.VarChar, 1000) { Value = digitalSignature });
                         cmd.Parameters.Add(new SqlParameter("@ElementInstanceRefId", SqlDbType.UniqueIdentifier) { Value = elementInstanceRefId });
                         cmd.Parameters.Add(new SqlParameter("@Date", SqlDbType.DateTime) { Value = DateTimeNow });
+                        cmd.Parameters.Add(new SqlParameter("@Certificate", SqlDbType.VarChar, 5000) { Value = GetPKCS7() });
 
                         DocumentSigned documentSigned = new DocumentSigned(document.DocumentSignedSettings, document.OwnerName, document.OriginalName, document.FormInstanceId, document.EnvironmentId, document.Created, document.Content);
 
@@ -224,7 +225,7 @@ namespace Undani.Signature.Core
                         {
                             while (reader.Read())
                             {
-                                documentSigned.Signs.Value.Add(new Sign(document.DocumentSignedSettings, reader.GetString(0), BeginningDate, ExpirationDate, reader.GetString(1), reader.GetString(2), reader.GetString(3), reader.GetString(4), reader.GetString(5), reader.GetDateTime(6)));
+                                documentSigned.Signs.Value.Add(new Sign(document.DocumentSignedSettings, reader.GetString(0), BeginningDate, ExpirationDate, reader.GetString(1), reader.GetString(2), reader.GetString(3), reader.GetString(4), reader.GetString(5), reader.GetDateTime(6), reader.GetString(7)));
                             }
 
 
@@ -308,6 +309,7 @@ namespace Undani.Signature.Core
                         cmd.Parameters.Add(new SqlParameter("@DigitalSignature", SqlDbType.VarChar, 1000) { Value = digitalSignature });
                         cmd.Parameters.Add(new SqlParameter("@ElementInstanceRefId", SqlDbType.UniqueIdentifier) { Value = elementInstanceRefId });
                         cmd.Parameters.Add(new SqlParameter("@Date", SqlDbType.DateTime) { Value = DateTimeNow });
+                        cmd.Parameters.Add(new SqlParameter("@Certificate", SqlDbType.VarChar, 5000) { Value = GetPKCS7() });
 
                         cmd.ExecuteNonQuery();
 

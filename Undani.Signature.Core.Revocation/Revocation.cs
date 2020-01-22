@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -100,7 +100,7 @@ namespace Undani.Signature.Core
                 int status = ocspResp.Status;
 
                 if (status != OcspRespStatus.Successful)
-                    throw new Exception("S513-1 (" + ocspResp.Status + ")");
+                    throw new Exception("S513-1 " + ocspResp.Status);
 
                 var basicOcspResp = (BasicOcspResp)ocspResp.GetResponseObject();
 
