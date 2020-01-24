@@ -318,8 +318,8 @@ namespace Undani.Signature.Core
         {
             if (reference != "")
             {
-                if (reference.ToUpper() != Reference)
-                    throw new Exception("S509-2 " + reference.ToUpper() + " ≠ " + Reference);
+                if (reference.Trim().ToUpper() != Reference.Trim().ToUpper())
+                    throw new Exception("S509-2 " + reference.Trim().ToUpper() + " ≠ " + Reference.Trim().ToUpper());
             }
             else
             {
