@@ -28,7 +28,7 @@ namespace Undani.Signature.Core
             return content;
         }
 
-        public _UserLogin End(Guid ownerId, string digitalSignature, string content)
+        public UserLogin End(Guid ownerId, string digitalSignature, string content)
         {
 
             JObject oJson = JObject.Parse(content);
@@ -74,7 +74,7 @@ namespace Undani.Signature.Core
                 {
                     userHelper.SetContent(userId, content);
 
-                    return new _UserLogin() { UserName = Reference, Password = password };
+                    return new UserLogin() { UserName = Reference, Password = password };
                 }
             }
 

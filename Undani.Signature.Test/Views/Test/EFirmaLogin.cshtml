@@ -87,7 +87,7 @@
 
                 <button id="exists" type="button" class="btn btn-primary pull-right">Existe</button>
             </div>
-                <br />
+            <br />
         </form>
     </div>
 </div>
@@ -131,7 +131,8 @@
     <script type="text/javascript" src="@configuration["WebFramework"]/undani/js/signature/kjur/x509-1.1.js"></script>
     <script type="text/javascript" src="@configuration["WebFramework"]/undani/js/signature/signature.js"></script>
 
-    <script type="text/javascript" src="@configuration["WebFramework"]/undani/js/undani/2.0/undani.login.signature.js?v=2.0.1"></script>
+    @*<script type="text/javascript" src="@configuration["WebFramework"]/undani/js/undani/2.0/undani.login.signature-es.js?v=2.0.2"></script>*@
+    <script type="text/javascript" src="@configuration["WebFramework"]/undani/js/undani/2.0/undani.login.signature.js?v=2.0.2"></script>
 
     <script type="text/javascript">
         $(document).ready(function () {
@@ -152,8 +153,8 @@
                     "municipioCTField": "A39",
                     "nombreCTField": "SERGIO ANTONIO DE LA FUENTE RAMIREZ",
                     "numeroRegistroPatronalField": null,
-                    "registroPatronalField": "A3912602101",
-                    "rfcCTField": "KAHO641101B39",
+                    "registroPatronalField": "A1234567890",
+                    "rfcCTField": "HEGT7610034S1",
                     "totalEventualesField": 0,
                     "totalEventualesFieldSpecified": true,
                     "totalEventualesCampoField": 0,
@@ -172,7 +173,7 @@
                 } else {
                     alert('No existe');
                 }
-                
+
             });
 
             $('#login').click(function (e) {
@@ -184,8 +185,8 @@
                                   "municipioCTField": "K84",
                                   "nombreCTField": "PABLO ANGEL RAMIREZ",
                                   "numeroRegistroPatronalField": null,
-                                  "registroPatronalField": "K8410825102",
-                                  "rfcCTField": "KAHO641101B39",
+                                  "registroPatronalField": "A1234567890",
+                                  "rfcCTField": "HEGT7610034S1",
                                   "totalEventualesField": 0,
                                   "totalEventualesFieldSpecified": true,
                                   "totalEventualesCampoField": 0,

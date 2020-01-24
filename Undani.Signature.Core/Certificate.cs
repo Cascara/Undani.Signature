@@ -319,12 +319,12 @@ namespace Undani.Signature.Core
             if (reference != "")
             {
                 if (reference.ToUpper() != Reference)
-                    throw new Exception("S509-2 " + reference.ToUpper());
+                    throw new Exception("S509-2 " + reference.ToUpper() + " ≠ " + Reference);
             }
             else
             {
                 if (User.Reference != Reference)
-                    throw new Exception("S509-1 " + User.Reference);
+                    throw new Exception("S509-1 " + User.Reference + " ≠ " + Reference);
             }
         }
     }

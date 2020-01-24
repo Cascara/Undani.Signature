@@ -47,6 +47,7 @@ namespace Undani.Signature.API.Controllers
             }
             catch (Exception ex)
             {
+                result.Value = null;
                 result.Error = ex.Message;
             }
 
@@ -78,6 +79,7 @@ namespace Undani.Signature.API.Controllers
             }
             catch (Exception ex)
             {
+                result.Value = null;
                 result.Error = ex.Message;
             }
 
@@ -115,6 +117,7 @@ namespace Undani.Signature.API.Controllers
             }
             catch (Exception ex)
             {
+                result.Value = null;
                 result.Error = ex.Message;
             }
 
@@ -126,17 +129,26 @@ namespace Undani.Signature.API.Controllers
         #region Login
         [HttpPost]
         [Route("Login/Start")]
-        public string LoginStart(IFormFile publicKey)
+        public Result LoginStart(IFormFile publicKey)
         {
-            if (publicKey == null)
-                throw new Exception("S501");
 
-            string result = "";
-            using (MemoryStream memoryStream = new MemoryStream())
+            Result result = new Result();
+            try
             {
-                publicKey.CopyTo(memoryStream);
-                var publicKeyBytes = memoryStream.ToArray();
-                result = new LoginHelper(_configuration, null, Guid.Empty, publicKeyBytes).Start();
+                if (publicKey == null)
+                    throw new Exception("S501");
+                using (MemoryStream memoryStream = new MemoryStream())
+                {
+                    publicKey.CopyTo(memoryStream);
+                    var publicKeyBytes = memoryStream.ToArray();
+                    result.Value = new LoginHelper(_configuration, null, Guid.Empty, publicKeyBytes).Start();
+                }
+
+            }
+            catch (Exception ex)
+            {
+                result.Value = null;
+                result.Error = ex.Message;
             }
 
             return result;
@@ -144,20 +156,28 @@ namespace Undani.Signature.API.Controllers
 
         [HttpPost]
         [Route("Login/End")]
-        public _UserLogin LoginEnd([FromForm]Guid ownerId, IFormFile publicKey, [FromForm]string digitalSignature, [FromForm]string content)
+        public Result LoginEnd([FromForm]Guid ownerId, IFormFile publicKey, [FromForm]string digitalSignature, [FromForm]string content)
         {
-            if (publicKey == null)
-                throw new Exception("S501");
-
-            if (string.IsNullOrWhiteSpace(digitalSignature))
-                throw new Exception("S502");
-
-            _UserLogin result;
-            using (MemoryStream memoryStream = new MemoryStream())
+            Result result = new Result();
+            try
             {
-                publicKey.CopyTo(memoryStream);
-                var publicKeyBytes = memoryStream.ToArray();
-                result = new LoginHelper(_configuration, null, Guid.Empty, publicKeyBytes).End(ownerId, digitalSignature, content);
+                if (publicKey == null)
+                    throw new Exception("S501");
+
+                if (string.IsNullOrWhiteSpace(digitalSignature))
+                    throw new Exception("S502");
+
+                using (MemoryStream memoryStream = new MemoryStream())
+                {
+                    publicKey.CopyTo(memoryStream);
+                    var publicKeyBytes = memoryStream.ToArray();
+                    result.Value = new LoginHelper(_configuration, null, Guid.Empty, publicKeyBytes).End(ownerId, digitalSignature, content);
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Value = null;
+                result.Error = ex.Message;
             }
 
             return result;

@@ -111,7 +111,7 @@
                                     SignStart(procedureInstanceRefId, elementInstanceRefId, templates, represented);
                                 })
                                 .fail(function (jqXHR, textStatus, errorThrown) {
-                                    RaiseError("S004");
+                                    signature.trigger("error", errorThrown);
                                 });
                         }
                     }

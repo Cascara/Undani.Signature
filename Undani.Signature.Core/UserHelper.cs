@@ -75,7 +75,7 @@ namespace Undani.Signature.Core
             }
         }
 
-        public _UserLogin CreateUser(Guid ownerId, string roles, string reference, string userName, string name, string content, string contentFactorAuthentication, string password)
+        public UserLogin CreateUser(Guid ownerId, string roles, string reference, string userName, string name, string content, string contentFactorAuthentication, string password)
         {
             _UserIdentity _userIdentity = new IdentityCall(Configuration, _user).CreateUser(ownerId, name, reference, password);
 
@@ -101,7 +101,7 @@ namespace Undani.Signature.Core
                 }
             }
 
-            return new _UserLogin() { UserName = userName, Password = password };
+            return new UserLogin() { UserName = userName, Password = password };
         }
 
         public void SetContent(Guid userId, string content)
