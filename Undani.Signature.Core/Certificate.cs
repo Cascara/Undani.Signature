@@ -18,8 +18,6 @@ namespace Undani.Signature.Core
     public abstract class Certificate
     {
         private Guid _environmentId;
-        private string _number;
-        private string _content;
         private string _error = string.Empty;
         private string _populationUniqueIdentifier = "";
         private string _reference;
