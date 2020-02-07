@@ -12,11 +12,11 @@ namespace Undani.Signature.Core.Resource
 
         public IdentityCall(IConfiguration configuration, User user) : base(configuration, user) { }
 
-        public _UserIdentity CreateUser(Guid ownerId, string givenName, string reference, string password)
+        public _UserIdentity CreateUser(Guid ownerId, string givenName, string reference, string userName, string password)
         {
-            string user = "{\"Email\":\"\",\"UserName\":\"{{Reference}}\",\"Password\":\"{{Password}}\",\"GivenName\":\"{{GivenName}}\",\"FamilyName\":\"\",\"Owners\":[\"{{OwnerId}}\"]}";
+            string user = "{\"Email\":\"\",\"UserName\":\"{{UserName}}\",\"Password\":\"{{Password}}\",\"GivenName\":\"{{GivenName}}\",\"FamilyName\":\"\",\"Owners\":[\"{{OwnerId}}\"]}";
 
-            user = user.Replace("{{Reference}}", reference);
+            user = user.Replace("{{UserName}}", userName);
             user = user.Replace("{{GivenName}}", givenName);
             user = user.Replace("{{Password}}", password);
             user = user.Replace("{{OwnerId}}", ownerId.ToString());
