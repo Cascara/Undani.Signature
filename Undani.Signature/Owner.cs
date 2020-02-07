@@ -8,6 +8,7 @@ namespace Undani.Signature
     {
         public string Signatory { get; set; }
         public string ContentFactorAuthentication { get; set; }
+        public string ContentFactorAuthenticationUserName { get; set; }
         public string Roles { get; set; }
     }
 }

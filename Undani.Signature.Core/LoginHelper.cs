@@ -53,6 +53,16 @@ namespace Undani.Signature.Core
                 }
             }
 
+            string userName = Reference;
+            if (owner.ContentFactorAuthenticationUserName != string.Empty)
+            {
+                string[] jsonPaths = owner.ContentFactorAuthenticationUserName.Split(',');
+
+                foreach (string jsonPath in jsonPaths)
+                {
+                    userName += "|" + (string)oJson.SelectToken(jsonPath);
+                }
+            }
 
             string signNumber = "||SignNumber:" + GetCrc32(DateTimeNow.ToString("dd/MM/yyyy")) + SerialNumber + "||";
 
@@ -62,19 +72,19 @@ namespace Undani.Signature.Core
 
                 Guid userId = Guid.Empty;
 
-                string password = userHelper.GetPassword(Reference, owner.ContentFactorAuthentication, ref userId);
+                string password = userHelper.GetPassword(userName, owner.ContentFactorAuthentication, ref userId);
 
                 if (password == "")
                 {
                     password = GetCrc32(Reference + DateTimeNow.ToString("dd/MM/yyyy hh:mm:ss"));
 
-                    return userHelper.CreateUser(ownerId, owner.Roles, Reference, Reference, Name, content, owner.ContentFactorAuthentication, password);
+                    return userHelper.CreateUser(ownerId, owner.Roles, Reference, userName, Name, content, owner.ContentFactorAuthentication, password);
                 }
                 else
                 {
                     userHelper.SetContent(userId, content);
 
-                    return new UserLogin() { UserName = Reference, Password = password };
+                    return new UserLogin() { UserName = userName, Password = password };
                 }
             }
 
@@ -93,6 +103,7 @@ namespace Undani.Signature.Core
                     cmd.Parameters.Add(new SqlParameter("@OwnerId", SqlDbType.UniqueIdentifier) { Value = ownerId });
                     cmd.Parameters.Add(new SqlParameter("@Signatory", SqlDbType.VarChar, 1000) { Direction = ParameterDirection.Output });
                     cmd.Parameters.Add(new SqlParameter("@ContentFactorAuthentication", SqlDbType.VarChar, 1000) { Direction = ParameterDirection.Output });
+                    cmd.Parameters.Add(new SqlParameter("@ContentFactorAuthenticationUserName", SqlDbType.VarChar, 1000) { Direction = ParameterDirection.Output });
                     cmd.Parameters.Add(new SqlParameter("@Roles", SqlDbType.VarChar, 1000) { Direction = ParameterDirection.Output });
 
                     cmd.ExecuteNonQuery();
@@ -101,6 +112,7 @@ namespace Undani.Signature.Core
                     {
                         Signatory = (string)cmd.Parameters["@Signatory"].Value,
                         ContentFactorAuthentication = (string)cmd.Parameters["@ContentFactorAuthentication"].Value,
+                        ContentFactorAuthenticationUserName = (string)cmd.Parameters["@ContentFactorAuthenticationUserName"].Value,
                         Roles = (string)cmd.Parameters["@Roles"].Value
                     };
                 }
