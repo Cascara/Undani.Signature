@@ -11,7 +11,7 @@
     "IIS Express": {
       "commandName": "IISExpress",
       "launchBrowser": true,
-      "launchUrl": "api/values",
+      "launchUrl": "",
       "environmentVariables": {
         "OCSP_ON": "0",
         "CONFIGURATION_ENVIRONMENT": "F943C91D-711A-462B-BE43-43F04D67FA86",
@@ -22,7 +22,7 @@
     "Undani.Signature.API": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "api/values",
+      "launchUrl": "",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },

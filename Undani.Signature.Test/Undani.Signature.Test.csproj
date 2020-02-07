@@ -26,4 +26,8 @@
     </Reference>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\undani\js\seguridata\" />
+  </ItemGroup>
+
 </Project>
