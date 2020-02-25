@@ -47,9 +47,11 @@ namespace Undani.Signature.Core
 
                 IDictionary<string, object> dicContentFactorAuthentication = contentFactorAuthentication;
 
+                string value = "";
                 foreach (string key in dicContentFactorAuthentication.Keys)
                 {
-                    owner.ContentFactorAuthentication = owner.ContentFactorAuthentication.Replace((string)dicContentFactorAuthentication[key], (string)oJson.SelectToken(dicContentFactorAuthentication[key].ToString().Replace("[[", "").Replace("]]", "")));
+                    value = (string)oJson.SelectToken(dicContentFactorAuthentication[key].ToString().Replace("[[", "").Replace("]]", ""));
+                    owner.ContentFactorAuthentication = owner.ContentFactorAuthentication.Replace((string)dicContentFactorAuthentication[key], value.Trim());
                 }
             }
 
@@ -58,9 +60,11 @@ namespace Undani.Signature.Core
             {
                 string[] jsonPaths = owner.ContentFactorAuthenticationUserName.Split(',');
 
+                string value = "";
                 foreach (string jsonPath in jsonPaths)
                 {
-                    userName += "|" + (string)oJson.SelectToken(jsonPath);
+                    value = (string)oJson.SelectToken(jsonPath);
+                    userName += "|" + value.Trim();
                 }
             }
 
