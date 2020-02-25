@@ -77,10 +77,10 @@ namespace Undani.Signature.Core
 
         public UserLogin CreateUser(Guid ownerId, string roles, string reference, string userName, string name, string content, string contentFactorAuthentication, string password)
         {
-            _UserIdentity _userIdentity = new IdentityCall(Configuration, _user).CreateUser(ownerId, name, reference, password);
+            _UserIdentity _userIdentity = new IdentityCall(Configuration, _user).CreateUser(ownerId, name, reference, userName, password);
 
             TrackingCall trackingCall = new TrackingCall(Configuration, _user);
-            trackingCall.CreateUser(_userIdentity.SubjectId, ownerId, reference, roles, reference, _userIdentity.GivenName, _userIdentity.FamilyName, _userIdentity.Email, content);
+            trackingCall.CreateUser(_userIdentity.SubjectId, ownerId, reference, roles, userName, _userIdentity.GivenName, _userIdentity.FamilyName, _userIdentity.Email, content);
 
             using (SqlConnection cn = new SqlConnection(Configuration["CnDbSignature"]))
             {
