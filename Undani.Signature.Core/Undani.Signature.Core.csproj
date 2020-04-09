@@ -23,7 +23,7 @@
       <HintPath>..\..\..\DROPBOX\Dropbox\Undani\DLL\Microsoft.WindowsAzure.Storage.dll</HintPath>
     </Reference>
     <Reference Include="Undani.JWT.NetCore">
-      <HintPath>..\..\..\DROPBOX\Dropbox\Undani\DLL\Undani.JWT.NetCore.dll</HintPath>
+      <HintPath>..\..\..\DROPBOX\Dropbox\Undani\DLL.3.0\Undani.JWT.NetCore.dll</HintPath>
     </Reference>
   </ItemGroup>
 
