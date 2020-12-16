@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <PublishWithAspNetCoreTargetManifest>false</PublishWithAspNetCoreTargetManifest>
+    <UserSecretsId>6cf75dd8-da73-43da-9460-05110e1f00e5</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

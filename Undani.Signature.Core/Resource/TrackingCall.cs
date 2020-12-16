@@ -12,7 +12,7 @@ namespace Undani.Signature.Core.Resource
     {
         public TrackingCall(IConfiguration configuration, User user) : base(configuration, user) { }
 
-        public void CreateUser(Guid userId, Guid ownerId, string reference, string roles, string userName, string givenName, string familyName, string email, string content)
+        public void CreateUser(Guid userId, Guid ownerId, string reference, string roles, string userName, string givenName, string content)
         {           
             var user = new { content = content };
 
@@ -20,9 +20,12 @@ namespace Undani.Signature.Core.Resource
             {
                 client.DefaultRequestHeaders.Add("Authorization", User.Token);
 
-                string url = Configuration["ApiTracking"] + "/Execution/User/Create?userId=" + userId.ToString() + "&ownerId=" + ownerId.ToString() + "&reference=" + reference + "&roles=" + roles + "&userName=" + userName + "&givenName=" + givenName;
+                string url = Configuration["ApiTracking"] + "/Execution/User/Create?userId=" + userId.ToString() + "&ownerId=" + ownerId.ToString() + "&roles=" + roles;
 
                 var formParameters = new List<KeyValuePair<string, string>>();
+                formParameters.Add(new KeyValuePair<string, string>("reference", reference));
+                formParameters.Add(new KeyValuePair<string, string>("userName", userName));
+                formParameters.Add(new KeyValuePair<string, string>("givenName", givenName));
                 formParameters.Add(new KeyValuePair<string, string>("content", content));
                 var formContent = new FormUrlEncodedContent(formParameters);
 
