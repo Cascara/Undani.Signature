@@ -3,6 +3,7 @@ using Newtonsoft.Json.Converters;
 using System;
 using System.Dynamic;
 using System.Globalization;
+using System.Security.Cryptography.X509Certificates;
 using System.Xml.Serialization;
 
 namespace Undani.Signature
@@ -46,8 +47,6 @@ namespace Undani.Signature
         public Sign(
             string settings,
             string serialNumber,
-            DateTime initialValidDate,
-            DateTime endValidDate,
             string name,
             string reference,
             string populationUniqueIdentifier,
@@ -57,6 +56,22 @@ namespace Undani.Signature
             string certificate
         )
         {
+            string pkcs7 = certificate;
+            pkcs7 = pkcs7.Replace("-----BEGIN PKCS7-----", "");
+            pkcs7 = pkcs7.Replace("-----END PKCS7-----", "");
+
+            X509Certificate2Collection collection = new X509Certificate2Collection();
+            collection.Import(Convert.FromBase64String(pkcs7));
+
+            X509Certificate X509PublicKey = collection[0];
+
+            DateTime initialValidDate;
+            DateTime endValidDate;
+
+            initialValidDate = DateTime.Parse(X509PublicKey.GetEffectiveDateString());
+
+            endValidDate = DateTime.Parse(X509PublicKey.GetExpirationDateString());
+
             dynamic dySettings = JsonConvert.DeserializeObject<ExpandoObject>(settings, new ExpandoObjectConverter());
 
             SerialNumber = new Field { Value = serialNumber, Description = dySettings.Sign.SerialNumber };

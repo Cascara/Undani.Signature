@@ -61,5 +61,20 @@ namespace Undani.Signature.Core.Resource
                 blob.UploadFromStreamAsync(signed).Wait();
             }
         }
+
+        public bool FileExists(string systemName)
+        {
+            using (var client = new HttpClient())
+            {
+                string url = Configuration["ApiBox"] + "/Execution/Box/Info?systemName=" + systemName;
+
+                HttpResponseMessage response = client.GetAsync(url).Result;
+
+                if (response.StatusCode != HttpStatusCode.OK)
+                    return false;
+                else
+                    return true;
+            }
+        }
     }
 }

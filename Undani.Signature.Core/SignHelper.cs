@@ -14,6 +14,7 @@ using Microsoft.Data.SqlClient;
 using System.IO;
 using System.Text;
 using Undani.Signature.Core.Resource;
+using System.Threading;
 
 namespace Undani.Signature.Core
 {
@@ -200,7 +201,7 @@ namespace Undani.Signature.Core
             {
                 if (SignExists(procedureInstanceRefId, key))
                     return true;
-
+                DocumentSigned documentSigned;
                 using (SqlConnection cn = new SqlConnection(Configuration["CnDbSignature"]))
                 {
                     cn.Open();
@@ -219,36 +220,36 @@ namespace Undani.Signature.Core
                         cmd.Parameters.Add(new SqlParameter("@Date", SqlDbType.DateTime) { Value = DateTimeNow });
                         cmd.Parameters.Add(new SqlParameter("@Certificate", SqlDbType.VarChar, 5000) { Value = GetPKCS7() });
 
-                        DocumentSigned documentSigned = new DocumentSigned(document.DocumentSignedSettings, document.OwnerName, document.OriginalName, document.FormInstanceId, document.EnvironmentId, document.Created, document.Content);
+                        documentSigned = new DocumentSigned(document.DocumentSignedSettings, document.OwnerName, document.OriginalName, document.FormInstanceId, document.EnvironmentId, document.Created, document.Content);
 
                         using (SqlDataReader reader = cmd.ExecuteReader())
                         {
                             while (reader.Read())
                             {
-                                documentSigned.Signs.Value.Add(new Sign(document.DocumentSignedSettings, reader.GetString(0), BeginningDate, ExpirationDate, reader.GetString(1), reader.GetString(2), reader.GetString(3), reader.GetString(4), reader.GetString(5), reader.GetDateTime(6), reader.GetString(7)));
-                            }
-
-
-                            if (template.Contains("NoApply_"))
-                            {
-                                return true;
-                            }
-                            else if (template.Contains("OnlyProcedure_"))
-                            {
-                                string xml = new Xml<DocumentSigned>().Serialize(documentSigned, Encoding.UTF8);
-                                List<ActivityInstanceDocumentSigned> activityInstanceDocumentsSigned = new TemplateCall(Configuration, User).SignatureGraphicRepresentation(procedureInstanceRefId, key, document.SystemName, document.OriginalName, template.Replace("OnlyProcedure_", ""), xml);
-                                valid = new TrackingCall(Configuration, User).SetProcedureInstanceDocumentsSigned(procedureInstanceRefId, key, activityInstanceDocumentsSigned);
-                            }
-                            else
-                            {
-                                string xml = new Xml<DocumentSigned>().Serialize(documentSigned, Encoding.UTF8);
-                                List<ActivityInstanceDocumentSigned> activityInstanceDocumentsSigned = new TemplateCall(Configuration, User).SignatureGraphicRepresentation(procedureInstanceRefId, key, document.SystemName, document.OriginalName, template, xml);
-                                valid = new TrackingCall(Configuration, User).SetActivityInstanceDocumentsSigned(elementInstanceRefId, key, activityInstanceDocumentsSigned);
+                                documentSigned.Signs.Value.Add(new Sign(document.DocumentSignedSettings, reader.GetString(0), reader.GetString(1), reader.GetString(2), reader.GetString(3), reader.GetString(4), reader.GetString(5), reader.GetDateTime(6), reader.GetString(7)));
                             }
 
                         }
                     }
                 }
+
+                if (!template.Contains("NoApply_"))
+                {
+                    TemplateCall templateCall = new TemplateCall(Configuration, User);
+
+                    string xml = new Xml<DocumentSigned>().Serialize(documentSigned, Encoding.UTF8);
+
+                    template = template.Contains("OnlyProcedure_") ? template.Replace("OnlyProcedure_", "") : template;
+
+                    templateCall.SignatureGraphicRepresentation(procedureInstanceRefId, key, document.SystemName, document.OriginalName, template, xml);
+
+                    valid = DocumentSignedOnTracking(elementInstanceRefId, key, document.OriginalName, document.SystemName);
+                }
+                else
+                {
+                    valid = true;
+                }        
+                
             }
             else
             {
@@ -256,6 +257,44 @@ namespace Undani.Signature.Core
             }
 
             return valid;
+        }
+
+        private bool DocumentSignedOnTracking(Guid elementInstanceRefId, string key, string originalName, Guid systemName)
+        {
+
+            List<ActivityInstanceDocumentSigned> activityInstanceDocumentsSigned = new List<ActivityInstanceDocumentSigned>();
+
+            activityInstanceDocumentsSigned.Add(new ActivityInstanceDocumentSigned() { OriginalName = originalName + ".pdf", SystemName = systemName.ToString() + ".pdf", HashCode = "", Created = false });
+            activityInstanceDocumentsSigned.Add(new ActivityInstanceDocumentSigned() { OriginalName = originalName + ".xml", SystemName = systemName.ToString() + ".xml", HashCode = "", Created = true });
+
+            bool result;
+            try
+            {
+                result = new TrackingCall(Configuration, User).SetActivityInstanceDocumentsSigned(elementInstanceRefId, key, activityInstanceDocumentsSigned);
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+
+            if (result)
+            {
+                int verify = 0;
+                BoxCall boxCall = new BoxCall(Configuration, User);
+                do
+                {
+                    Thread.Sleep(3000);
+
+                    if (boxCall.FileExists(systemName.ToString() + ".pdf"))
+                    {
+                        return true;
+                    }
+
+                    verify += 1;
+                } while (verify < 10) ;
+            }
+
+            return false;
         }
 
 

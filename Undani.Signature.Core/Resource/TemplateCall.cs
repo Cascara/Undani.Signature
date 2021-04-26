@@ -11,7 +11,7 @@ namespace Undani.Signature.Core.Resource
     {
         public TemplateCall(IConfiguration configuration, User user) : base(configuration, user) { }
 
-        public List<ActivityInstanceDocumentSigned> SignatureGraphicRepresentation(Guid procedureInstanceRefId, string key, Guid systemName, string originalName, string template, string xml)
+        public void SignatureGraphicRepresentation(Guid procedureInstanceRefId, string key, Guid systemName, string originalName, string template, string xml)
         {
 
             dynamic message = new
@@ -44,13 +44,6 @@ namespace Undani.Signature.Core.Resource
                     cmd.ExecuteNonQuery();
                 }
             }
-
-            List<ActivityInstanceDocumentSigned> response = new List<ActivityInstanceDocumentSigned>();
-
-            response.Add(new ActivityInstanceDocumentSigned() { OriginalName = originalName + ".pdf", SystemName = systemName.ToString() + ".pdf", HashCode = "", Created = false });
-            response.Add(new ActivityInstanceDocumentSigned() { OriginalName = originalName + ".xml", SystemName = systemName.ToString() + ".xml", HashCode = "", Created = true });
-
-            return response;
         }
     }
 }
