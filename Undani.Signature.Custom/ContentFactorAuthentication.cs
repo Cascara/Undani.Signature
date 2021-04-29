@@ -6,30 +6,30 @@ namespace Undani.Signature.Custom
 {
     public class ContentFactorAuthentication
     {
-        public ValidateContentFactorAuthentication(IConfiguration configuration)
-        {
-            Configuration = configuration;
-        }
+        //public ValidateContentFactorAuthentication(IConfiguration configuration)
+        //{
+        //    Configuration = configuration;
+        //}
 
-        public IConfiguration Configuration { get; }
+        //public IConfiguration Configuration { get; }
 
-        public bool Validate (JToken jtContent)
-        {
-            using (var client = new HttpClient())
-            {
-                string url = "https://apifonacotintegrationprod.azurewebsites.net/Integration/ValidaDatosCT?reg=" + reader.GetString(1) + "&rfc=" + reader.GetString(2);
+        //public bool Validate (JToken jtContent)
+        //{
+        //    using (var client = new HttpClient())
+        //    {
+        //        string url = "https://apifonacotintegrationprod.azurewebsites.net/Integration/ValidaDatosCT?reg=" + reader.GetString(1) + "&rfc=" + reader.GetString(2);
 
-                HttpResponseMessage response = client.GetAsync(url).Result;
+        //        HttpResponseMessage response = client.GetAsync(url).Result;
 
-                if (response.StatusCode != HttpStatusCode.OK)
-                    Console.WriteLine(reader.GetString(1));
+        //        if (response.StatusCode != HttpStatusCode.OK)
+        //            Console.WriteLine(reader.GetString(1));
 
-                string json = response.Content.ReadAsStringAsync().Result;
+        //        string json = response.Content.ReadAsStringAsync().Result;
 
-                Console.WriteLine(json);
+        //        Console.WriteLine(json);
 
-                SaidSuccess(reader.GetGuid(3), json.Replace("clienteIDField", "folioClienteField"), "{}");
-            }
-        }
+        //        SaidSuccess(reader.GetGuid(3), json.Replace("clienteIDField", "folioClienteField"), "{}");
+        //    }
+        //}
     }
 }

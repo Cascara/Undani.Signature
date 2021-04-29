@@ -294,7 +294,7 @@ namespace Undani.Signature.Core
                 } while (verify < 10) ;
             }
 
-            return false;
+            return true;
         }
 
 
